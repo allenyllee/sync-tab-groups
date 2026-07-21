@@ -2,12 +2,14 @@ import OptionManager from '../core/optionmanager'
 import LogManager from '../error/logmanager'
 import GroupManager from '../core/groupmanager'
 import WindowManager from '../core/windowmanager'
+import Lifecycle from '../lifecycle'
 
 const CommandsEvent = {};
 
 CommandsEvent.initCommandsEventListener = function() {
   // Commands
   browser.commands.onCommand.addListener(async function(command) {
+    await Lifecycle.ready();
     try {
       if (!OptionManager.options.shortcuts.allowGlobal) { // disable by user
         return "";

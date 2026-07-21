@@ -5,9 +5,9 @@ import TabManager from '../core/tabmanager/tabManager'
 import BackgroundHelper from '../core/backgroundHelper'
 import TaskManager from '../utils/taskManager'
 
-import readJsonFile from '../utils/readJsonFile'
 import getGroupIndexSortedByPosition from './getGroupIndexSortedByPosition'
 import ExtensionStorageManager from '../storage/storageManager'
+import Lifecycle from '../lifecycle'
 
 const ContextMenu = {};
 
@@ -148,7 +148,7 @@ ContextMenu.createSpecialActionMenu = function() {
   let contextManageGroups = {
     id: ContextMenu.SpecialActionMenu_ID + "manage_groups",
     title: browser.i18n.getMessage("group_manager"),
-    contexts: ['browser_action'],
+    contexts: ['action'],
 
   };
   if (Utils.isFirefox()) {
@@ -162,7 +162,7 @@ ContextMenu.createSpecialActionMenu = function() {
   let contextExportGroups = {
     id: ContextMenu.SpecialActionMenu_ID + "export_groups",
     title: browser.i18n.getMessage("export_groups"),
-    contexts: ['browser_action'],
+    contexts: ['action'],
   };
   if (Utils.isFirefox()) {
     contextExportGroups.icons = {
@@ -175,7 +175,7 @@ ContextMenu.createSpecialActionMenu = function() {
   let contextBackUp = {
     id: ContextMenu.SpecialActionMenu_ID + "backup",
     title: browser.i18n.getMessage("contextmenu_backup"),
-    contexts: ['browser_action'],
+    contexts: ['action'],
   };
   if (Utils.isFirefox()) {
     contextBackUp.icons = {
@@ -188,7 +188,7 @@ ContextMenu.createSpecialActionMenu = function() {
   browser.contextMenus.create({
     id: ContextMenu.SpecialActionMenu_ID + "import_groups",
     title: browser.i18n.getMessage("import_groups"),
-    contexts: ['browser_action'],
+    contexts: ['action'],
     icons: {
       "64": "/share/icons/download-64.png",
       "32": "/share/icons/download-32.png"
@@ -199,7 +199,7 @@ ContextMenu.createSpecialActionMenu = function() {
   browser.contextMenus.create({
     id: ContextMenu.SpecialActionMenu_ID + "save_bookmarks_groups",
     title: browser.i18n.getMessage("save_bookmarks_groups"),
-    contexts: ['browser_action'],
+    contexts: ['action'],
     icons: {
       "64": "/share/icons/star-64.png",
       "32": "/share/icons/star-32.png"
@@ -210,7 +210,7 @@ ContextMenu.createSpecialActionMenu = function() {
   let contextOpenPreferences = {
     id: ContextMenu.SpecialActionMenu_ID + "open_preferences",
     title: browser.i18n.getMessage("contextmenu_preferences"),
-    contexts: ['browser_action'],
+    contexts: ['action'],
   };
   if (Utils.isFirefox()) {
     contextOpenPreferences.icons = {
@@ -224,7 +224,7 @@ ContextMenu.createSpecialActionMenu = function() {
   let contextGuide = {
     id: ContextMenu.SpecialActionMenu_ID + "guide",
     title: browser.i18n.getMessage("options_guide"),
-    contexts: ['browser_action'],
+    contexts: ['action'],
   };
   if (Utils.isFirefox()) { // Incompatible Chrome: "tab" in context menus
     contextGuide.icons = {
@@ -238,13 +238,14 @@ ContextMenu.createSpecialActionMenu = function() {
     let contextTestPreferences = {
       id: ContextMenu.SpecialActionMenu_ID + "open_tests",
       title: "Tests",
-      contexts: ['browser_action'],
+      contexts: ['action'],
     };
     browser.contextMenus.create(contextTestPreferences);
   }
 }
 
-ContextMenu.MoveTabMenuListener = function(info, tab) {
+ContextMenu.MoveTabMenuListener = async function(info, tab) {
+  await Lifecycle.ready();
   if (info.menuItemId.includes(ContextMenu.MoveTabMenu_ID)) {
     let order = info.menuItemId.substring(ContextMenu.MoveTabMenu_ID.length, info.menuItemId.length);
     let groupId = parseInt(order);
@@ -259,30 +260,13 @@ ContextMenu.MoveTabMenuListener = function(info, tab) {
   }
 };
 
-function onImportGroup() {
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = '.json';
-  fileInput.acceptCharset = 'utf-8';
-  fileInput.onchange = () => {
-    readJsonFile(fileInput.files[0]).then((jsonContent) => {
-      BackgroundHelper.onImportGroups({
-        content_file: jsonContent,
-      });
-    });
-  };
-  fileInput.click();
-}
-
-ContextMenu.SpecialActionMenuListener = function(info, tab) {
+ContextMenu.SpecialActionMenuListener = async function(info, tab) {
+  await Lifecycle.ready();
   if (info.menuItemId.includes(ContextMenu.SpecialActionMenu_ID)) {
     let order = info.menuItemId.substring(ContextMenu.SpecialActionMenu_ID.length, info.menuItemId.length);
     switch (order) {
     case "export_groups":
       BackgroundHelper.onExportGroups();
-      break;
-    case "import_groups":
-      onImportGroup();
       break;
     case "save_bookmarks_groups":
       BackgroundHelper.onBookmarkSave();
@@ -291,7 +275,7 @@ ContextMenu.SpecialActionMenuListener = function(info, tab) {
       BackgroundHelper.onOpenSettings();
       break;
     case "manage_groups":
-      Utils.openUrlOncePerWindow(browser.extension.getURL(
+      Utils.openUrlOncePerWindow(browser.runtime.getURL(
         "/manage/manage-groups.html"
       ));
       break;
@@ -303,7 +287,7 @@ ContextMenu.SpecialActionMenuListener = function(info, tab) {
       break;
     case "open_tests":
       Utils.openUrlOncePerWindow(
-        browser.extension.getURL("/tests/test-page/test-page.html"),
+        browser.runtime.getURL("/tests/test-page/test-page.html"),
         true,
       );
       break;
@@ -311,9 +295,15 @@ ContextMenu.SpecialActionMenuListener = function(info, tab) {
   }
 };
 
-ContextMenu.initContextMenus = function() {
+ContextMenu.registerEventListeners = function() {
   browser.contextMenus.onClicked.addListener(ContextMenu.SpecialActionMenuListener);
   browser.contextMenus.onClicked.addListener(ContextMenu.MoveTabMenuListener);
+};
+
+ContextMenu.initContextMenus = async function() {
+  await browser.contextMenus.removeAll();
+  ContextMenu.MoveTabMenuIds = [];
+  ContextMenu.SpecialActionMenuIds = [];
   ContextMenu.createMoveTabMenu();
   ContextMenu.createSpecialActionMenu();
 
@@ -325,6 +315,6 @@ ContextMenu.initContextMenus = function() {
         }
       )
     });
-}
+};
 
 export default ContextMenu

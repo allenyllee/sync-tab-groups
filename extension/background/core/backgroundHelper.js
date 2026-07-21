@@ -18,7 +18,8 @@ TaskManager.fromUI = {
 
 
 const BackgroundHelper = {}
-window.BackgroundHelper = BackgroundHelper
+globalThis.BackgroundHelper = BackgroundHelper
+BackgroundHelper.initialized = false
 
 BackgroundHelper.refreshOptionsUI = function() {
   Utils.sendMessage("Option:Changed", {
@@ -40,17 +41,17 @@ BackgroundHelper.refreshUi = function() {
 };
 
 BackgroundHelper.onRemoveHiddenTab = function({tabId}) {
-  TabHidden.closeHiddenTabs(tabId);
+  return TabHidden.closeHiddenTabs(tabId);
 };
 
 BackgroundHelper.onRemoveHiddenTabsInGroup = function({groupId}) {
   const groupIndex = GroupManager.getGroupIndexFromGroupId(groupId);
   const tabIds = GroupManager.groups[groupIndex].tabs.map(({id}) => id);
-  TabHidden.closeHiddenTabs(tabIds);
+  return TabHidden.closeHiddenTabs(tabIds);
 };
 
 BackgroundHelper.onOpenGroupInNewWindow = function({groupId}) {
-  WindowManager.selectGroup(groupId, {newWindow: true});
+  return WindowManager.selectGroup(groupId, {newWindow: true});
 };
 
 BackgroundHelper.onOpenGuide = function() {
@@ -72,7 +73,7 @@ BackgroundHelper.onGroupAddWithTab = function({
   sourceGroupId,
   tabIndex,
 }) {
-  TabManager.moveTabToNewGroup(
+  return TabManager.moveTabToNewGroup(
     sourceGroupId,
     tabIndex,
     title,
@@ -96,7 +97,7 @@ BackgroundHelper.onGroupClose = function({
     }
   };
 
-  TaskManager.fromUI[TASKMANAGER_CONSTANTS.CLOSE_REFERENCE].manage(
+  return TaskManager.fromUI[TASKMANAGER_CONSTANTS.CLOSE_REFERENCE].manage(
     taskRef,
     delayedFunction,
     groupId,
@@ -134,7 +135,7 @@ BackgroundHelper.onGroupRename = function({
 };
 
 BackgroundHelper.onGroupSelect = function({groupId}) {
-  WindowManager.selectGroup(
+  return WindowManager.selectGroup(
     groupId,
     {newWindow: false}
   );
@@ -145,7 +146,7 @@ BackgroundHelper.onTabSelect = function({
   groupId,
   newWindow,
 }) {
-  TabManager.selectTab(
+  return TabManager.selectTab(
     tabIndex,
     groupId,
     newWindow,
@@ -167,11 +168,11 @@ BackgroundHelper.onMoveTabToGroup = async function({
 };
 
 BackgroundHelper.onBookmarkSave = function() {
-  ExtensionStorageManager.Bookmark.backUp(GroupManager.getCopy(), true);
+  return ExtensionStorageManager.Bookmark.backUp(GroupManager.getCopy(), true);
 };
 
 BackgroundHelper.onOpenSettings = function(active=true) {
-  Utils.openUrlOncePerWindow(browser.extension.getURL(
+  return Utils.openUrlOncePerWindow(browser.runtime.getURL(
     "/options/option-page.html"
   ), active);
 };
@@ -181,7 +182,7 @@ BackgroundHelper.onRemoveAllGroups = function() {
 };
 
 BackgroundHelper.onReloadGroups = function() {
-  GroupManager.reloadGroupsFromDisk();
+  return GroupManager.reloadGroupsFromDisk();
 };
 
 BackgroundHelper.changeSynchronizationStateOfWindow = async function(args) {
@@ -247,7 +248,7 @@ BackgroundHelper.onImportGroups = function({
   content_file,
   filename,
 }) {
-  ImportSelector.onOpenGroupsSelector({
+  return ImportSelector.onOpenGroupsSelector({
     title: 'From file: ' + filename,
     groups: ExtensionStorageManager.File.importGroupsFromFile(content_file),
     type: SELECTOR_TYPE.IMPORT,
@@ -255,7 +256,7 @@ BackgroundHelper.onImportGroups = function({
 };
 
 BackgroundHelper.onExportGroups = function() {
-  ImportSelector.onOpenGroupsSelector({
+  return ImportSelector.onOpenGroupsSelector({
     title: 'Current groups at ' + new Date(),
     groups: GroupManager.getCopy(),
     type: SELECTOR_TYPE.EXPORT,
@@ -263,7 +264,7 @@ BackgroundHelper.onExportGroups = function() {
 };
 
 BackgroundHelper.onExportBackUp = async function(id) {
-  ImportSelector.onOpenGroupsSelector({
+  return ImportSelector.onOpenGroupsSelector({
     title: 'Back up: ' + ExtensionStorageManager.Local.getBackUpDate(id),
     groups: (await ExtensionStorageManager.Local.getBackUp(id)),
     type: SELECTOR_TYPE.EXPORT,
@@ -271,7 +272,7 @@ BackgroundHelper.onExportBackUp = async function(id) {
 };
 
 BackgroundHelper.onImportBackUp = async function(id) {
-  ImportSelector.onOpenGroupsSelector({
+  return ImportSelector.onOpenGroupsSelector({
     title: 'Back up: ' + ExtensionStorageManager.Local.getBackUpDate(id),
     groups: (await ExtensionStorageManager.Local.getBackUp(id)),
     type: SELECTOR_TYPE.IMPORT,

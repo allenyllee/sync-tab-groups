@@ -9,26 +9,6 @@ import OptionManager from '../core/optionmanager'
 
 const InstallEvents = {};
 
-InstallEvents.DEV_TABS = [
-  "/tests/test-page/unit.html",
-  "/tests/test-page/integration.html",
-  "/options/option-page.html#settings",
-  //"/tests/test-page/integration.html?spec=Selector%20-%20",
-]
-
-InstallEvents.onDevelopmentInstall = function() {
-  InstallEvents.DEV_TABS.forEach((url)=>{
-    browser.tabs.create({
-      active: false,
-      url: browser.extension.getURL(url),
-    });
-  });
-
-  /*** Add extra code you want to be done in Development ***/
-  //Selector.onOpenGroupsSelector({force: true});
-}
-
-
 InstallEvents.onNewInstall = function() {
   BackgroundHelper.install = true;
   BackgroundHelper.onOpenSettings(false);
@@ -45,7 +25,7 @@ InstallEvents.onUpdate = function(previousVersion) {
   // Generic message
   browser.notifications.create(BackgroundHelper.updateNotificationId, {
     "type": "basic",
-    "iconUrl": browser.extension.getURL("/share/icons/tabspace-active-64.png"),
+    "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
     "title": browser.i18n.getMessage("notification_update_title") + " " + browser.runtime.getManifest().version,
     "message": browser.i18n.getMessage("notification_update_message"),
   });

@@ -56,14 +56,16 @@ If you find a bug, please [open an issue](https://github.com/Morikko/sync-tab-gr
 # Build
 
 ## External dependencies
- - Node >= 8
+ - Node >= 20
  - Firefox Dev Edition (if you want to use web-ext)
 
 ## Scripts (with `npm run`)
-- `build` the extension in dev mode is built to the `build/` folder
-- `watch` Same than the `build` command but recompile the modified files
-- `build:prod` the extension ready for production is built to the `release/build/` folder
-- `zip`  Create the `XPI` and `ZIP` files in `release/` from the production build
+- `build` builds both MV3 targets in development mode to `build/firefox/` and `build/chrome/`
+- `build:firefox` / `build:chrome` build one development target
+- `watch` watches and rebuilds the Firefox development target
+- `build:prod` builds both production targets to `release/firefox/` and `release/chrome/`
+- `build:prod:firefox` / `build:prod:chrome` build one production target
+- `zip` creates `release/sync-tab-groups-firefox.xpi` and `release/sync-tab-groups-chrome.zip`
 - `release` Do the `build:prod` and `zip` commands
 - `lint` show only errors
 - `clean` Remove the folders `build/` and `release/`
@@ -73,7 +75,7 @@ If you find a bug, please [open an issue](https://github.com/Morikko/sync-tab-gr
 ## Difference between mode
 1. `process.env.IS_PROD` is only true in the production code, so `Utils.DEBUG_MODE` is true only in the dev code
 2. Tests are only built in the dev version
-3. ZIP and XPI files are the same than `release/build/`
+3. Firefox and Chrome use separate MV3 manifests because Firefox still uses a background script while Chrome uses a service worker
 
 
 # Credits

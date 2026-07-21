@@ -1,7 +1,6 @@
 import Utils from '../utils/utils'
 import LogManager from '../error/logmanager'
 import GroupManager from '../core/groupmanager'
-import TaskManager from '../utils/taskManager'
 import EventListener from '../utils/eventlistener'
 import WindowManager from './windowmanager'
 import OPTION_CONSTANTS from './OPTION_CONSTANTS'
@@ -9,15 +8,13 @@ import TabHidden from '../core/tabhidden'
 import ExtensionStorageManager from '../storage/storageManager'
 
 const OptionManager = {};
-window.OptionManager = OptionManager;
+globalThis.OptionManager = OptionManager;
 
 OptionManager.EVENT_CHANGE = 'options-change';
 
-//OptionManager.options = OPTION_CONSTANTS.TEMPLATE();
+OptionManager.options = OPTION_CONSTANTS.TEMPLATE();
 OptionManager.eventlistener = new EventListener();
 OptionManager.checkerInterval = undefined;
-
-OptionManager.repeatedtask = new TaskManager.RepeatedTask(5000);
 
 /**
  * Change option value
@@ -90,7 +87,7 @@ OptionManager.updateOption = async function(optionName, optionValue) {
       optionValue);
   }
 
-  OptionManager.eventlistener.fire(OptionManager.EVENT_CHANGE);
+  await OptionManager.eventlistener.fire(OptionManager.EVENT_CHANGE);
 }
 
 OptionManager.getOptionValue = function(optionName) {
@@ -269,21 +266,13 @@ OptionManager.store = function() {
 OptionManager.initEventListener = function() {
   OptionManager.eventlistener.on(OptionManager.EVENT_CHANGE,
     () => {
-      OptionManager.repeatedtask.add(
-        () => {
-          OptionManager.store();
-        }
-      )
+      return OptionManager.store();
     });
 
-  // Check options are not corrupted every 30s
-  OptionManager.checkerInterval = setInterval(()=>{
-    OptionManager.checkCorruptedOptions(OptionManager.options);
-  }, 30000);
 }
 
 OptionManager.reloadOptionsFromDisk = async function() {
-  OptionManager.options = await ExtensionStorageManager.Local.loadGroups();
+  OptionManager.options = await ExtensionStorageManager.Local.loadOptions();
 }
 
 OptionManager.checkCorruptedOptions = function(options=OptionManager.options) {

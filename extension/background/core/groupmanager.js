@@ -77,7 +77,6 @@ import OptionManager from '../core/optionmanager'
 import LogManager from '../error/logmanager'
 import BackgroundHelper from '../core/backgroundHelper'
 import WindowManager from '../core/windowmanager'
-import TaskManager from '../utils/taskManager'
 import EventListener from '../utils/eventlistener'
 import TabManager from './tabmanager/tabManager'
 import ExtensionStorageManager from '../storage/storageManager'
@@ -86,7 +85,8 @@ import OPTION_CONSTANTS from '../core/OPTION_CONSTANTS'
 import TAB_CONSTANTS from '../core/TAB_CONSTANTS'
 
 const GroupManager = {};
-window.GroupManager = GroupManager;
+globalThis.GroupManager = GroupManager;
+GroupManager.storePromise = Promise.resolve();
 
 GroupManager.setTabIsHidden = function(tabId, hiddenValue, groups=GroupManager.groups) {
   const tab = groups.map(group => group.tabs)
@@ -102,7 +102,6 @@ GroupManager.EVENT_PREPARE = 'groups-prepare';
 // Done after a group modification when groups are safe
 GroupManager.EVENT_CHANGE = 'groups-change';
 GroupManager.eventlistener = new EventListener();
-GroupManager.repeatedtask = new TaskManager.RepeatedTask(5000);
 // Reference to the interval that checks if groups are corrupted
 GroupManager.checkerInterval = undefined;
 
@@ -125,7 +124,7 @@ GroupManager.Group = function({
   this.incognito = incognito;
 }
 
-//GroupManager.groups = [];
+GroupManager.groups = [];
 
 /**
  * Return the group id displayed in the window with windowId
@@ -818,7 +817,7 @@ GroupManager.addGroups = function(newGroups, {
   if (showNotification) {
     browser.notifications.create({
       "type": "basic",
-      "iconUrl": browser.extension.getURL("/share/icons/tabspace-active-64.png"),
+      "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
       "title": "Import Groups succeeded",
       "message": newGroups.length + " groups imported.",
       "eventTime": 4000,
@@ -962,7 +961,7 @@ GroupManager.init = async function() {
       if (group.windowId === -1) {
         browser.notifications.create(null, {
           "type": "basic",
-          "iconUrl": browser.extension.getURL("/share/icons/tabspace-active-64.png"),
+          "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
           "title": "Fail to find the window",
           "message": `For the group previously opened named "${Utils.getGroupTitle(group)}".You might check your groups to avoid data loss.`,
         });
@@ -1005,7 +1004,11 @@ GroupManager.store = function() {
     LogManager.information("Corrupted groups, saved not done.")
     return;
   }
-  ExtensionStorageManager.Local.saveGroups(GroupManager.getCopy());
+  const groups = GroupManager.getCopy();
+  GroupManager.storePromise = GroupManager.storePromise
+    .catch(error => LogManager.error(error))
+    .then(() => ExtensionStorageManager.Local.saveGroups(groups));
+  return GroupManager.storePromise;
   /* TODO - end of bookmark auto-save
   if (OptionManager.options.bookmarks.sync) {
     ExtensionStorageManager.Bookmark.backUp(GroupManager.getCopy());
@@ -1013,23 +1016,21 @@ GroupManager.store = function() {
   */
 }
 
+GroupManager.waitForStore = function() {
+  return GroupManager.storePromise;
+}
+
 GroupManager.initGroupManagerEventListener = function() {
   GroupManager.eventlistener.on(GroupManager.EVENT_CHANGE, () => {
-    GroupManager.repeatedtask.add(() => {
-      GroupManager.store();
-    })
+    return GroupManager.store();
   });
 
   // Done after a group modification to assure integrity
   GroupManager.eventlistener.on(GroupManager.EVENT_PREPARE, () => {
     GroupManager.prepareGroups(GroupManager.groups);
-    GroupManager.eventlistener.fire(GroupManager.EVENT_CHANGE);
+    return GroupManager.eventlistener.fire(GroupManager.EVENT_CHANGE);
   });
 
-  // Check groups are not corrupted every 30s
-  GroupManager.checkerInterval = setInterval(()=>{
-    GroupManager.checkCorruptedGroups(GroupManager.groups);
-  }, 30000);
 };
 
 /**

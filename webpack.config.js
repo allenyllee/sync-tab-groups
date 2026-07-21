@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const merge = require('webpack-merge');
+const {merge} = require('webpack-merge');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
@@ -33,6 +33,10 @@ const config = {
   output: {
     filename: '[name].js',
     sourceMapFilename: '[name].js.map',
+    hashFunction: 'sha256',
+    environment: {
+      globalThis: true,
+    },
   },
   resolve: {
     extensions: ['.js', '.jsx'],
@@ -40,12 +44,13 @@ const config = {
   watchOptions: {
     ignored: /node_modules/,
   },
+  node: {
+    global: false,
+  },
   optimization: {
     minimizer: [
       new TerserPlugin({
-        cache: true,
         parallel: true,
-        sourceMap: true,
         terserOptions: {
           ecma: 8,
           compress: {
@@ -72,36 +77,40 @@ const config = {
           },
           {
             loader: require.resolve('sass-loader'),
+            options: {
+              implementation: require('sass'),
+            },
           },
         ],
       },
       {
         test: /.(ttf|otf|eot|svg|woff(2)?)(\?[a-z0-9]+)?$/,
-        use: [{
-          loader: 'file-loader',
-          options: {
-            name: '[name].[ext]',
-            outputPath: '/fonts/',
-            publicPath: '/fonts/',
-          },
-        }],
+        type: 'asset/resource',
+        generator: {
+          filename: 'fonts/[name][ext]',
+        },
       },
     ],
   },
   plugins: [
-    new CopyWebpackPlugin(
-      multipleCopy('_locales', 'manifest.json')
+    new CopyWebpackPlugin({
+      patterns: multipleCopy('_locales', 'service-worker.js')
         .concat([
           {from: '**/*.html'},
           {from: '**/*.css'},
           {from: '**/*.png'},
-        ])
-    ),
+        ]),
+    }),
   ],
 };
 
 module.exports = (env, argv) => {
   let envConfig;
+  const browserTarget = env && env.browser ? env.browser : 'firefox';
+
+  if (!['chrome', 'firefox'].includes(browserTarget)) {
+    throw new Error(`Unsupported browser target: ${browserTarget}`);
+  }
 
   if (argv.mode === 'development') {
     envConfig = devConfig;
@@ -111,5 +120,19 @@ module.exports = (env, argv) => {
     envConfig = prodConfig;
   }
 
-  return merge(config, envConfig);
+  const outputRoot = argv.mode === 'production' ? 'release' : 'build';
+
+  return merge(config, envConfig, {
+    output: {
+      path: path.resolve(__dirname, `./${outputRoot}/${browserTarget}`),
+    },
+    plugins: [
+      new CopyWebpackPlugin({
+        patterns: [{
+          from: `manifest.${browserTarget}.json`,
+          to: 'manifest.json',
+        }],
+      }),
+    ],
+  });
 };

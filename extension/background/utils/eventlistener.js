@@ -8,11 +8,13 @@ EventListener.prototype.on = function(event, fn) {
 }
 
 EventListener.prototype.fire = function(event) {
-  if (this.events[event]) {
-    this.events[event].forEach(function(fn) {
-      fn();
-    });
+  if (!this.events[event]) {
+    return Promise.resolve([]);
   }
+
+  return Promise.all(this.events[event].map(function(fn) {
+    return fn();
+  }));
 }
 
 export default EventListener

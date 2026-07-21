@@ -2,65 +2,46 @@ import BackgroundHelper from '../core/backgroundHelper'
 const GroupsMessenger = {};
 
 // Event from: popup
-GroupsMessenger.popupMessenger = function(message) {
+GroupsMessenger.popupMessenger = async function(message) {
   switch (message.task) {
   case "Group:Add":
-    BackgroundHelper.onGroupAdd(message.params);
-    break;
+    return BackgroundHelper.onGroupAdd(message.params);
   case "Group:AddWithTab":
-    BackgroundHelper.onGroupAddWithTab(message.params);
-    break;
+    return BackgroundHelper.onGroupAddWithTab(message.params);
   case "Group:Close":
-    BackgroundHelper.onGroupClose(message.params);
-    break;
+    return BackgroundHelper.onGroupClose(message.params);
   case "Group:ChangePosition":
-    BackgroundHelper.onGroupChangePosition(message.params);
-    break;
+    return BackgroundHelper.onGroupChangePosition(message.params);
   case "Group:Remove":
-    BackgroundHelper.onGroupRemove(message.params);
-    break;
+    return BackgroundHelper.onGroupRemove(message.params);
   case "Group:Rename":
-    BackgroundHelper.onGroupRename(message.params);
-    break;
+    return BackgroundHelper.onGroupRename(message.params);
   case "Group:Select":
-    BackgroundHelper.onGroupSelect(message.params);
-    break;
+    return BackgroundHelper.onGroupSelect(message.params);
   case "Group:MoveTab":
-    BackgroundHelper.onMoveTabToGroup(message.params);
-    break;
+    return BackgroundHelper.onMoveTabToGroup(message.params);
   case "Tab:Select":
-    BackgroundHelper.onTabSelect(message.params);
-    break;
+    return BackgroundHelper.onTabSelect(message.params);
   case "Group:OpenGroupInNewWindow":
-    BackgroundHelper.onOpenGroupInNewWindow(message.params);
-    break;
+    return BackgroundHelper.onOpenGroupInNewWindow(message.params);
   case "Data:Ask":
-    BackgroundHelper.refreshData(message.params);
-    break;
+    return BackgroundHelper.refreshData(message.params);
   case "App:OpenSettings":
-    BackgroundHelper.onOpenSettings();
-    break;
+    return BackgroundHelper.onOpenSettings();
   case "Window:Sync":
-    BackgroundHelper.changeSynchronizationStateOfWindow(message.params);
-    break;
+    return BackgroundHelper.changeSynchronizationStateOfWindow(message.params);
   case "Tab:Open":
-    BackgroundHelper.onTabOpen(message.params);
-    break;
+    return BackgroundHelper.onTabOpen(message.params);
   case "Tab:Close":
-    BackgroundHelper.onTabClose(message.params);
-    break;
+    return BackgroundHelper.onTabClose(message.params);
   case "Tab:ChangePin":
-    BackgroundHelper.onTabChangePin(message.params);
-    break;
+    return BackgroundHelper.onTabChangePin(message.params);
   case "Group:Expand":
-    BackgroundHelper.onChangeExpand(message.params);
-    break;
+    return BackgroundHelper.onChangeExpand(message.params);
   case "Tab:RemoveHiddenTab":
-    BackgroundHelper.onRemoveHiddenTab(message.params);
-    break;
+    return BackgroundHelper.onRemoveHiddenTab(message.params);
   case "Group:RemoveHiddenTabsInGroup":
-    BackgroundHelper.onRemoveHiddenTabsInGroup(message.params);
-    break;
+    return BackgroundHelper.onRemoveHiddenTabsInGroup(message.params);
   }
 }
 

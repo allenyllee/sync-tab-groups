@@ -9,6 +9,6 @@ const ExtensionStorageManager = {
   File: FileStorage,
   Backup: BackupStorage,
 }
-window.ExtensionStorageManager = ExtensionStorageManager;
+globalThis.ExtensionStorageManager = ExtensionStorageManager;
 
 export default ExtensionStorageManager

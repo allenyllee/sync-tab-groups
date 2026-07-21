@@ -6,6 +6,7 @@ import OPTION_CONSTANTS from '../core/OPTION_CONSTANTS'
 
 const LocalStorage = {};
 LocalStorage.BACKUP_TIMEOUT = null;
+LocalStorage.BACKUP_ALARM = "sync-tab-groups-local-backup";
 
 LocalStorage.BACKUP_CHANGE = "backup-change";
 LocalStorage.eventlistener = new EventListener();
@@ -77,11 +78,9 @@ LocalStorage.cleanOptions = async function() {
 }
 
 LocalStorage.abortBackUp = function() {
-  if (LocalStorage.BACKUP_TIMEOUT) {
-    clearTimeout(LocalStorage.BACKUP_TIMEOUT);
-    LocalStorage.BACKUP_TIMEOUT = undefined;
-    LocalStorage.BACKUP_TIMEOUT_PROMISE = Promise.resolve();
-  }
+  LocalStorage.BACKUP_TIMEOUT = undefined;
+  LocalStorage.BACKUP_TIMEOUT_PROMISE = Promise.resolve();
+  return browser.alarms.clear(LocalStorage.BACKUP_ALARM);
 }
 
 /**
@@ -103,7 +102,7 @@ LocalStorage.planBackUp = async function(
   let id;
 
   // Abort previous pending back up...
-  LocalStorage.abortBackUp();
+  await LocalStorage.abortBackUp();
 
   // Get last back up date
   const backupList = await LocalStorage.getBackUpList();
@@ -121,17 +120,21 @@ LocalStorage.planBackUp = async function(
     diffTime = 0;
   }
 
-  // Or set specific timer
-  //LocalStorage.planBackUp();
-  LocalStorage.BACKUP_TIMEOUT_PROMISE = new Promise((resolve, reject)=>{
-    LocalStorage.BACKUP_TIMEOUT = setTimeout(async function doBackUpAfterTimeout() {
-      await LocalStorage.addBackup({groups});
-      await LocalStorage.planBackUp(groups);
-      resolve();
-    }, intervalTime-diffTime);
+  browser.alarms.create(LocalStorage.BACKUP_ALARM, {
+    when: Date.now() + Math.max(30000, intervalTime-diffTime),
   });
 
   return id;
+}
+
+LocalStorage.onAlarm = async function(alarm) {
+  if (alarm.name !== LocalStorage.BACKUP_ALARM) {
+    return false;
+  }
+
+  await LocalStorage.addBackup({groups: GroupManager.groups});
+  await LocalStorage.planBackUp();
+  return true;
 }
 
 LocalStorage.getBackUpList = async function() {

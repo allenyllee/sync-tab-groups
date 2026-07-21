@@ -102,7 +102,7 @@ class MainBar extends GroupNameEditor {
 
   handleClickManageButton(event) {
     event.stopPropagation();
-    Utils.openUrlOncePerWindow(browser.extension.getURL(
+    Utils.openUrlOncePerWindow(browser.runtime.getURL(
       "/manage/manage-groups.html"
     )).then(()=>{ // Let time to window to Open
       window.close();

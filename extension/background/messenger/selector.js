@@ -7,19 +7,17 @@ import ExtensionStorageManager from '../storage/storageManager'
 
 const SelectorMessenger = {};
 
-SelectorMessenger.selectorMessenger = function(message) {
+SelectorMessenger.selectorMessenger = async function(message) {
   switch (message.task) {
   case "Ask:SelectorGroups":
-    Utils.sendMessage("Selector:Groups", {
+    await ImportSelector.restoreState();
+    return Utils.sendMessage("Selector:Groups", {
       groups: ImportSelector.groups,
     });
-    break;
   case "Selector:Finish":
-    SelectorMessenger.manageFinish(message.params);
-    break;
+    return SelectorMessenger.manageFinish(message.params);
   case "Ask:Options":
-    BackgroundHelper.refreshOptionsUI();
-    break;
+    return BackgroundHelper.refreshOptionsUI();
   }
 }
 
@@ -27,6 +25,7 @@ SelectorMessenger.manageFinish = async function({
   filter,
   importType,
 }) {
+  await ImportSelector.restoreState();
   let done = false;
   if (ImportSelector.type === SELECTOR_TYPE.EXPORT) {
     done = await ExtensionStorageManager.File.downloadGroups(

@@ -16,6 +16,7 @@
   "plugins": ["import", "jsdoc", "react", "jasmine"],
   "globals": {
     "browser": true,
+    "globalThis": true,
     "process": true,
     "$": true
   },
@@ -73,10 +74,6 @@
     "indent": [
       "error",
       2
-    ],
-    "linebreak-style": [
-      "error",
-      "unix"
     ],
     "keyword-spacing": [
       "error",

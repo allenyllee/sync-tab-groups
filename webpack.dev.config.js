@@ -6,23 +6,21 @@ const plugins = [
   new webpack.DefinePlugin({
     'process.env.IS_PROD': false,
   }),
-  new CopyWebpackPlugin([
-    {
+  new CopyWebpackPlugin({
+    patterns: [{
       from: 'node_modules/jasmine-core/lib/jasmine-core/*.*',
       to: 'tests/jasmine-core/',
       context: '../',
-      flatten: true,
     },
     {
       from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js',
       to: 'lib/',
       context: '../',
-      flatten: true,
       transform: function(content, path) {
         return content.toString().replace('//# sourceMappingURL=browser-polyfill.js.map', '')
       },
-    },
-  ]),
+    }],
+  }),
 ];
 
 module.exports = {
@@ -33,8 +31,9 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './build'),
   },
-  // FIX: Module not found: Error: Can't resolve 'fs'
-  node: { fs: 'empty' },
+  resolve: {
+    fallback: {fs: false},
+  },
   target: 'web',
   mode: 'development',
   plugins,
@@ -43,5 +42,8 @@ module.exports = {
    * Issue on webpack: https://github.com/webpack/webpack/issues/1194
    * Issue on web-ext toolbox: https://github.com/webextension-toolbox/webextension-toolbox/issues/58
    */
-  devtool: 'inline-source-map',
+  // Webpack 4's source-map plugin uses MD4, which is unavailable in current
+  // Node/OpenSSL builds. Keep development builds portable until webpack is
+  // upgraded separately.
+  devtool: false,
 };

@@ -3,7 +3,7 @@ import BackgroundHelper from '../core/backgroundHelper'
 import OptionManager from '../core/optionmanager'
 
 const LogManager = {};
-window.LogManager = LogManager
+globalThis.LogManager = LogManager
 
 LogManager.LOG_NUMBER_LIMIT = 10000;
 LogManager.NOTIFICATION_ID = "LOG_ERROR";
@@ -21,7 +21,7 @@ LogManager.SWITCH_GROUP_WITH_LOST = "SWITCH_GROUP_WITH_LOST"
 
 LogManager.logs = [];
 
-const extensionPrefix = browser.extension.getURL('/');
+const extensionPrefix = browser.runtime.getURL('/');
 
 // Before the options and the logmanager are fully started, we always log
 LogManager.isEnable = function() {
@@ -183,7 +183,7 @@ LogManager.sendLog = function(log) {
 LogManager.addWindowOnErrorListener = function({
   enable=LogManager.isEnable(),
 }={}) {
-  window.onerror = function(...args) {
+  globalThis.onerror = function(...args) {
     const [, , , , error] = args;
     LogManager.error(error, "Caught by window.onerror", {enable})
   }
@@ -195,19 +195,15 @@ LogManager.downloadLog = async function downloadLog(logs=LogManager.logs) {
     const browserInfo = Utils.isChrome()
       ? "Chrome"
       : await browser.runtime.getBrowserInfo()
-    let url = URL.createObjectURL(new Blob([
-      JSON.stringify({
-        version: {
-          "SyncTabGroups": browser.runtime.getManifest().version,
-          browser: browserInfo,
-          os: (await browser.runtime.getPlatformInfo()).os,
-        },
-        logs,
-        options: OptionManager.options,
-      }, null, 2),
-    ], {
-      type: 'application/json',
-    }));
+    let url = Utils.createJsonFileUrl({
+      version: {
+        "SyncTabGroups": browser.runtime.getManifest().version,
+        browser: browserInfo,
+        os: (await browser.runtime.getPlatformInfo()).os,
+      },
+      logs,
+      options: OptionManager.options,
+    }, 2);
     let filename = "SyncTabGroups-Log-" + d.getFullYear() + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2) + "-" + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2) + ".json";
 
     let id = await browser.downloads.download({
@@ -218,7 +214,7 @@ LogManager.downloadLog = async function downloadLog(logs=LogManager.logs) {
 
     await Utils.waitDownload(id);
 
-    URL.revokeObjectURL(url);
+    Utils.revokeFileUrl(url);
     return true;
 
   } catch (e) {
@@ -230,7 +226,7 @@ LogManager.downloadLog = async function downloadLog(logs=LogManager.logs) {
 LogManager.showErrorNotification = function() {
   browser.notifications.create(LogManager.NOTIFICATION_ID, {
     type: 'basic',
-    iconUrl: browser.extension.getURL("/share/icons/tabspace-active-64.png"),
+    iconUrl: browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
     title: "Error caught in Sync Tab Groups",
     message: "An unexpected behavior happened in Sync Tab Groups. In order to improve the extension, could you send me the error back. Click on this notification to open the explanation on how to do it.",
   });

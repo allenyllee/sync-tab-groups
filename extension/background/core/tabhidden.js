@@ -5,9 +5,10 @@ import GroupManager from '../core/groupmanager'
 import OPTION_CONSTANTS from '../core/OPTION_CONSTANTS'
 
 const TabHidden = {};
-window.TabHidden = TabHidden
+globalThis.TabHidden = TabHidden
 
 TabHidden.TABHIDDEN_SESSION_KEY = "TABHIDDEN_ID";
+TabHidden.CLEANUP_ALARM = "sync-tab-groups-hidden-tabs-cleanup";
 TabHidden.cleaningUnknownHiddenTabsProcess = null;
 
 /**
@@ -241,17 +242,26 @@ TabHidden.startCleaningUnknownHiddenTabsProcess = async function({
     await TabHidden.closeUnknownHiddenTabs();
   }
 
-  TabHidden.cleaningUnknownHiddenTabsProcess = setInterval(
-    TabHidden.closeUnknownHiddenTabs,
-    2 * 60 * 1000
-  );
+  browser.alarms.create(TabHidden.CLEANUP_ALARM, {
+    delayInMinutes: 2,
+    periodInMinutes: 2,
+  });
+  TabHidden.cleaningUnknownHiddenTabsProcess = true;
 }
 
 TabHidden.stopCleaningUnknownHiddenTabsProcess = function() {
   if (TabHidden.cleaningUnknownHiddenTabsProcess) {
-    clearInterval(TabHidden.cleaningUnknownHiddenTabsProcess);
+    browser.alarms.clear(TabHidden.CLEANUP_ALARM);
     TabHidden.cleaningUnknownHiddenTabsProcess = null;
   }
+}
+
+TabHidden.onAlarm = async function(alarm) {
+  if (alarm.name !== TabHidden.CLEANUP_ALARM) {
+    return false;
+  }
+  await TabHidden.closeUnknownHiddenTabs();
+  return true;
 }
 
 export default TabHidden

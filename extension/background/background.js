@@ -14,18 +14,48 @@ import OptionManager from './core/optionmanager'
 import GroupManager from './core/groupmanager'
 import ContextMenu from './core/contextmenus'
 import BackgroundHelper from './core/backgroundHelper'
+import Lifecycle from './lifecycle'
+import TabHidden from './core/tabhidden'
 
 LogManager.LOCATION = LogManager.BACK
+
+function registerBrowserEventListeners() {
+  LogManager.init();
+  Events.Tabs.initTabsEventListener();
+  Events.Windows.initWindowsEventListener();
+  Events.Commands.initCommandsEventListener();
+  ContextMenu.registerEventListeners();
+
+  browser.runtime.onMessage.addListener(async(message) => {
+    await Lifecycle.ready();
+    await Messenger.Groups.popupMessenger(message);
+    await GroupManager.waitForStore();
+    await Messenger.Options.optionMessenger(message);
+    await Messenger.Selector.selectorMessenger(message);
+  });
+
+  browser.alarms.onAlarm.addListener(async(alarm) => {
+    await Lifecycle.ready();
+    if (await ExtensionStorageManager.Local.onAlarm(alarm)) {
+      return;
+    }
+    if (await ExtensionStorageManager.Backup.onAlarm(alarm)) {
+      return;
+    }
+    await TabHidden.onAlarm(alarm);
+  });
+}
 
 /**
  * Only read groups data, never write directly
  */
 async function init() {
-  LogManager.init();
   LogManager.information(LogManager.EXTENSION_START);
 
   await OptionManager.init();
   await GroupManager.init();
+  await TabHidden.onStartInitialization();
+  await TabHidden.startCleaningUnknownHiddenTabsProcess();
 
   Events.Install.prepareExtensionForUpdate(
     BackgroundHelper.lastVersion,
@@ -33,29 +63,17 @@ async function init() {
   );
 
   Events.Extension.initSendDataEventListener();
-  Events.Tabs.initTabsEventListener();
-  Events.Windows.initWindowsEventListener();
-  Events.Commands.initCommandsEventListener();
-  ContextMenu.initContextMenus();
-
-  browser.runtime.onMessage.addListener(Messenger.Groups.popupMessenger);
-  browser.runtime.onMessage.addListener(Messenger.Options.optionMessenger);
-  browser.runtime.onMessage.addListener(Messenger.Selector.selectorMessenger);
-  browser.runtime.onMessage.addListener((message)=>{
-    if (Utils.UTILS_SHOW_MESSAGES) {
-      console.log(message);
-    }
-  });
+  await ContextMenu.initContextMenus();
 
   Utils.setBrowserActionIcon(OptionManager.options.popup.whiteTheme);
 
   BackgroundHelper.refreshUi();
   BackgroundHelper.refreshOptionsUI();
 
-  await Utils.wait(2000);
-  ExtensionStorageManager.Local.planBackUp();
+  await ExtensionStorageManager.Local.planBackUp();
   ExtensionStorageManager.Backup.init();
   BackgroundHelper.install = false;
+  BackgroundHelper.initialized = true;
 
   LogManager.information(LogManager.EXTENSION_INITIALIZED, {
     groups: GroupManager.groups.map((group) => ({
@@ -67,16 +85,19 @@ async function init() {
 }
 
 /*** Init CRITICAL Event ***/
-browser.runtime.onInstalled.addListener((details) => {
+browser.runtime.onInstalled.addListener(async(details) => {
+  if (details.reason === "install") {
+    BackgroundHelper.install = true;
+  } else if (details.reason === "update") {
+    BackgroundHelper.lastVersion = details.previousVersion;
+  }
+
+  await Lifecycle.ready();
+
   // Only when the extension is installed for the first time
   if (details.reason === "install") {
     Events.Install.onNewInstall();
     LogManager.information(LogManager.EXTENSION_INSTALLED);
-  // Development mode detection
-  } else if ((Utils.isFirefox() && details.temporary)
-      || (Utils.isChrome() && details.reason === "update" && (browser.runtime.getManifest()).version === details.previousVersion)) {
-
-    Events.Install.onDevelopmentInstall();
   // Extension update detection
   } else if (details.reason === "update"
       && (browser.runtime.getManifest()).version !== details.previousVersion) {
@@ -90,4 +111,5 @@ if (Utils.isChrome()) { // Extension tabs are closed on update
 }
 
 // START of the extension
-init();
+registerBrowserEventListeners();
+init().then(Lifecycle.complete, Lifecycle.fail);

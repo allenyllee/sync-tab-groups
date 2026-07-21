@@ -5,6 +5,6 @@ const TaskManager = {
   DelayedTask: DelayedTaskManager,
   RepeatedTask: RepeatedTaskManager,
 }
-window.TaskManager = TaskManager;
+globalThis.TaskManager = TaskManager;
 
 export default TaskManager

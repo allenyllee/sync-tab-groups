@@ -6,11 +6,13 @@ import GroupManager from '../core/groupmanager'
 import BackgroundHelper from '../core/backgroundHelper'
 import WindowManager from '../core/windowmanager'
 import ContextMenu from '../core/contextmenus'
+import Lifecycle from '../lifecycle'
 
 const WindowsEvents = {};
 
 WindowsEvents.initWindowsEventListener = function() {
-  browser.windows.onCreated.addListener((window) => {
+  browser.windows.onCreated.addListener(async(window) => {
+    await Lifecycle.ready();
     if (Utils.DEBUG_MODE) console.log("Window Created: " + window.id)
     if (!OptionManager.options.privateWindow.sync
           && window.incognito) {
@@ -18,19 +20,18 @@ WindowsEvents.initWindowsEventListener = function() {
     }
 
     // Let time for opening well and be sure it is a new one
-    setTimeout(async function integrationWindowWhenCreated() {
-      console.log('INTEGRTE', WindowManager.WINDOW_EXCLUDED);
-      if (!WindowManager.WINDOW_EXCLUDED['opening']) {
-        try {
-          await WindowManager.integrateWindow(window.id);
-        } catch (e) {
-          LogManager.error(e, {window});
-        }
+    await Utils.wait(300);
+    if (!WindowManager.WINDOW_EXCLUDED['opening']) {
+      try {
+        await WindowManager.integrateWindow(window.id);
+      } catch (e) {
+        LogManager.error(e, {window});
       }
-    }, 300); // Below 400, it can fail
+    }
   });
 
-  browser.windows.onRemoved.addListener(function(windowId) {
+  browser.windows.onRemoved.addListener(async function(windowId) {
+    await Lifecycle.ready();
     if (Utils.DEBUG_MODE) console.log("Window removed: " + windowId)
     WindowManager.WINDOW_CURRENTLY_CLOSING[windowId] = true;
     ImportSelector.wasClosedGroupsSelector(windowId);
@@ -45,6 +46,7 @@ WindowsEvents.initWindowsEventListener = function() {
   /* TODO: doenst update context menu well if right click on a tab from another window
    */
   browser.windows.onFocusChanged.addListener(async function(windowId) {
+    await Lifecycle.ready();
     BackgroundHelper.refreshUi();
 
     try {

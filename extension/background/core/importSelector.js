@@ -3,7 +3,8 @@ import GroupManager from './groupmanager'
 import SELECTOR_TYPE from './SELECTOR_TYPE'
 
 const ImportSelector = {};
-window.ImportSelector = ImportSelector
+globalThis.ImportSelector = ImportSelector
+ImportSelector.STORAGE_KEY = "mv3ImportSelectorState";
 
 ImportSelector.WINDOW_ID = browser.windows.WINDOW_ID_NONE;
 
@@ -14,6 +15,46 @@ ImportSelector.groups = [];
 // What kind of groups (Example: my-groups.json, back-up-10-1993..)
 ImportSelector.file = "No groups selected";
 
+ImportSelector.persistState = function() {
+  return browser.storage.local.set({
+    [ImportSelector.STORAGE_KEY]: {
+      windowId: ImportSelector.WINDOW_ID,
+      type: ImportSelector.type,
+      groups: ImportSelector.groups,
+      file: ImportSelector.file,
+    },
+  });
+}
+
+ImportSelector.restoreState = async function() {
+  const stored = await browser.storage.local.get(ImportSelector.STORAGE_KEY);
+  const state = stored[ImportSelector.STORAGE_KEY];
+  if (!state) {
+    return;
+  }
+  ImportSelector.WINDOW_ID = state.windowId;
+  ImportSelector.type = state.type;
+  ImportSelector.groups = state.groups || [];
+  ImportSelector.file = state.file || ImportSelector.file;
+}
+
+ImportSelector.validateWindow = async function() {
+  if (ImportSelector.WINDOW_ID === browser.windows.WINDOW_ID_NONE) {
+    return;
+  }
+
+  try {
+    await browser.windows.get(ImportSelector.WINDOW_ID);
+  } catch (e) {
+    ImportSelector.WINDOW_ID = browser.windows.WINDOW_ID_NONE;
+    await ImportSelector.clearState();
+  }
+}
+
+ImportSelector.clearState = function() {
+  return browser.storage.local.remove(ImportSelector.STORAGE_KEY);
+}
+
 
 ImportSelector.onOpenGroupsSelector = async function({
   title=ImportSelector.file,
@@ -21,10 +62,12 @@ ImportSelector.onOpenGroupsSelector = async function({
   type=SELECTOR_TYPE.IMPORT,
   force=false,
 }={}) {
+  await ImportSelector.restoreState();
+  await ImportSelector.validateWindow();
   if (groups.length === 0 && !force) {
     browser.notifications.create({
       "type": "basic",
-      "iconUrl": browser.extension.getURL("/share/icons/tabspace-active-64.png"),
+      "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
       "title": type + " " + title,
       "message": "The group list was empty...",
       "eventTime": 4000,
@@ -34,7 +77,7 @@ ImportSelector.onOpenGroupsSelector = async function({
   if (GroupManager.checkCorruptedGroups(groups)) {
     browser.notifications.create({
       "type": "basic",
-      "iconUrl": browser.extension.getURL("/share/icons/tabspace-active-64.png"),
+      "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
       "title": type + " " + title,
       "message": "The group list is corrupted... It is impossible to load it.",
       "eventTime": 4000,
@@ -45,17 +88,13 @@ ImportSelector.onOpenGroupsSelector = async function({
   const preUrl = Utils.SELECTOR_PAGE_URL
   + "?title=" + type + " " + title
   + "&type=" + type;
-  const url = browser.extension.getURL(
+  const url = browser.runtime.getURL(
     preUrl
   );
 
-  let height = (window.screen.availHeight - 100);
   const windowInfo = {
-    height,
-    width: Math.min(window.screen.availWidth, 850),
+    width: 850,
     top: 50,
-    left: Math.round((window.screen.availWidth
-      - Math.min(window.screen.availWidth, 850))/2),
   };
 
   ImportSelector.groups = GroupManager.getGroupsWithoutPrivate(
@@ -63,6 +102,7 @@ ImportSelector.onOpenGroupsSelector = async function({
   );
   GroupManager.prepareGroups(ImportSelector.groups);
   ImportSelector.type = type;
+  ImportSelector.file = title;
 
   if (ImportSelector.WINDOW_ID === browser.windows.WINDOW_ID_NONE) {
     windowInfo["url"] = url;
@@ -70,12 +110,6 @@ ImportSelector.onOpenGroupsSelector = async function({
     windowInfo["type"] = "popup";
     ImportSelector.WINDOW_ID = (await browser.windows.create(windowInfo)).id;
 
-    // Linux Bug: https://bugzilla.mozilla.org/show_bug.cgi?id=1408446
-    // Extension pages are not well displayed on opening
-    // Resizing, right-click... does show the content
-    await browser.windows.update(ImportSelector.WINDOW_ID, {
-      height: height-1,
-    });
   } else {
     const tab = await browser.tabs.query({
       windowId: ImportSelector.WINDOW_ID,
@@ -87,11 +121,13 @@ ImportSelector.onOpenGroupsSelector = async function({
     windowInfo["focused"] = true;
     await browser.windows.update(ImportSelector.WINDOW_ID, windowInfo);
   }
+  await ImportSelector.persistState();
 }
 
-ImportSelector.wasClosedGroupsSelector = function(windowId) {
+ImportSelector.wasClosedGroupsSelector = async function(windowId) {
   if (windowId === ImportSelector.WINDOW_ID && windowId !== browser.windows.WINDOW_ID_NONE) {
     ImportSelector.WINDOW_ID = browser.windows.WINDOW_ID_NONE;
+    await ImportSelector.clearState();
   }
 }
 
@@ -101,6 +137,7 @@ ImportSelector.closeGroupsSelector = async function() {
       await browser.windows.remove(ImportSelector.WINDOW_ID);
     } catch (e) {return} finally {
       ImportSelector.WINDOW_ID = browser.windows.WINDOW_ID_NONE;
+      await ImportSelector.clearState();
     }
   }
 }

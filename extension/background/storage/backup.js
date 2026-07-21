@@ -8,6 +8,7 @@ import GroupManager from '../core/groupmanager'
 import OPTION_CONSTANTS from '../core/OPTION_CONSTANTS'
 
 const BackupStorage = {};
+BackupStorage.ALARM_PREFIX = "sync-tab-groups-download-backup-";
 
 BackupStorage.TIMERS = Utils.setObjectPropertiesWith(OPTION_CONSTANTS.TIMERS(), undefined);
 
@@ -38,21 +39,32 @@ BackupStorage.stopAll = function() {
 
 // Stop a specific timer
 BackupStorage.stopTimer = function(timer) {
-  if (BackupStorage.TIMERS[timer]) {
-    clearInterval(BackupStorage.TIMERS[timer]);
-  }
   BackupStorage.TIMERS[timer] = undefined;
+  return browser.alarms.clear(BackupStorage.ALARM_PREFIX + timer);
 }
 
 /**
   * Start a specific timer
   * Stop previous one if there was
   */
-BackupStorage.startTimer = function(timer) {
-  BackupStorage.stopTimer(timer);
-  BackupStorage.TIMERS[timer] = setInterval(function() {
-    BackupStorage.backup(timer.substring(2));
-  }, OPTION_CONSTANTS.TIMERS()[timer]);
+BackupStorage.startTimer = async function(timer) {
+  await BackupStorage.stopTimer(timer);
+  const periodInMinutes = OPTION_CONSTANTS.TIMERS()[timer] / (60 * 1000);
+  browser.alarms.create(BackupStorage.ALARM_PREFIX + timer, {
+    delayInMinutes: periodInMinutes,
+    periodInMinutes,
+  });
+  BackupStorage.TIMERS[timer] = true;
+}
+
+BackupStorage.onAlarm = async function(alarm) {
+  if (!alarm.name.startsWith(BackupStorage.ALARM_PREFIX)) {
+    return false;
+  }
+
+  const timer = alarm.name.substring(BackupStorage.ALARM_PREFIX.length);
+  await BackupStorage.backup(timer.substring(2));
+  return true;
 }
 
 
@@ -87,7 +99,7 @@ BackupStorage.backup = async function(time, groups=GroupManager.groups) {
     await browser.downloads.erase({
       id: id,
     });
-    URL.revokeObjectURL(url);
+    Utils.revokeFileUrl(url);
   } catch (e) {
     LogManager.error(e, {args: arguments});
   }

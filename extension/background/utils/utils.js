@@ -2,7 +2,7 @@ import TAB_CONSTANTS from '../core/TAB_CONSTANTS'
 
 //const browser.windows.WINDOW_ID_NONE = browser.windows.WINDOW_ID_NONE;
 const Utils = {};
-window.Utils = Utils;
+globalThis.Utils = Utils;
 
 /**
  * Show GroupId, Index, WindowId, Position in as group hover in menu
@@ -56,14 +56,14 @@ Utils.getCopy = function(obj) {
  */
 Utils.setBrowserActionIcon = function(icon_type) {
   if (icon_type === true) { // White
-    browser.browserAction.setIcon({
+    browser.action.setIcon({
       path: {
         16: "/share/icons/tabspace-light-16.png",
         32: "/share/icons/tabspace-light-32.png",
       },
     });
   } else if (icon_type === false) { // Black
-    browser.browserAction.setIcon({
+    browser.action.setIcon({
       path: {
         16: "/share/icons/tabspace-16.png",
         32: "/share/icons/tabspace-32.png",
@@ -213,7 +213,7 @@ Utils.extractLazyUrl = function(url="") {
 }
 
 Utils.getPrivilegedURL = function(title, url, favIconUrl) {
-  return browser.extension.getURL(Utils.PRIV_PAGE_URL) + "?" +
+  return browser.runtime.getURL(Utils.PRIV_PAGE_URL) + "?" +
     "title=" + encodeURIComponent(title|| "") +
     "&url=" + encodeURIComponent(url) +
     "&favIconUrl=" + encodeURIComponent(favIconUrl|| "");
@@ -223,7 +223,7 @@ Utils.getDiscardedURL = function(title, url, favIconUrl) {
   if (url === TAB_CONSTANTS.NEW_TAB || url === "about:blank" || url.includes("chrome://newtab")) {
     return url;
   } else {
-    return browser.extension.getURL(Utils.LAZY_PAGE_URL) + "?" +
+    return browser.runtime.getURL(Utils.LAZY_PAGE_URL) + "?" +
       "title=" + encodeURIComponent(title|| "") +
       "&url=" + encodeURIComponent(url) +
       "&favIconUrl=" + encodeURIComponent(favIconUrl|| "");
@@ -463,14 +463,30 @@ Utils.range = function(N) {
 Utils.createGroupsJsonFile = function(groups,{
   prettify=false,
 }={}) {
-  return URL.createObjectURL(new Blob([
-    JSON.stringify({
-      version: ["syncTabGroups", 1],
-      groups: groups,
-    }, null, (prettify?2:0)),
-  ], {
-    type: 'application/json',
-  }))
+  return Utils.createJsonFileUrl({
+    version: ["syncTabGroups", 1],
+    groups: groups,
+  }, prettify ? 2 : 0);
+}
+
+Utils.createJsonFileUrl = function(value, space=0) {
+  const json = JSON.stringify(value, null, space);
+
+  // Firefox's MV3 event page can create Blob URLs, while Chrome extension
+  // service workers cannot. A data URL keeps exports working in both.
+  if (typeof URL.createObjectURL === 'function') {
+    return URL.createObjectURL(new Blob([json], {
+      type: 'application/json',
+    }));
+  }
+
+  return `data:application/json;charset=utf-8,${encodeURIComponent(json)}`;
+}
+
+Utils.revokeFileUrl = function(url) {
+  if (url && url.startsWith('blob:') && typeof URL.revokeObjectURL === 'function') {
+    URL.revokeObjectURL(url);
+  }
 }
 
 /**
