@@ -21,7 +21,10 @@ describe("Download Back Up: ", ()=>{
       window.Background.OptionManager.options.backup.download.time[time] = true;
       await window.Background.ExtensionStorageManager.Backup.init();
       const alarmName = window.Background.ExtensionStorageManager.Backup.ALARM_PREFIX + time;
-      expect(await browser.alarms.get(alarmName)).toBeDefined();
+      const alarm = await browser.alarms.get(alarmName);
+      expect(alarm).toBeDefined();
+      await window.Background.ExtensionStorageManager.Backup.init();
+      expect((await browser.alarms.get(alarmName)).scheduledTime).toEqual(alarm.scheduledTime);
       await window.Background.ExtensionStorageManager.Backup.onAlarm({name: alarmName});
 
       expect(window.Background.ExtensionStorageManager.Backup.backup).toHaveBeenCalledWith(time.substring(2));

@@ -51,12 +51,15 @@ BackupStorage.stopTimer = function(timer) {
   * Stop previous one if there was
   */
 BackupStorage.startTimer = async function(timer) {
-  await BackupStorage.stopTimer(timer);
   const periodInMinutes = OPTION_CONSTANTS.TIMERS()[timer] / (60 * 1000);
-  browser.alarms.create(BackupStorage.ALARM_PREFIX + timer, {
-    delayInMinutes: periodInMinutes,
-    periodInMinutes,
-  });
+  const alarmName = BackupStorage.ALARM_PREFIX + timer;
+  const alarm = await browser.alarms.get(alarmName);
+  if (!alarm || alarm.periodInMinutes !== periodInMinutes) {
+    browser.alarms.create(alarmName, {
+      delayInMinutes: periodInMinutes,
+      periodInMinutes,
+    });
+  }
   BackupStorage.TIMERS[timer] = true;
 }
 

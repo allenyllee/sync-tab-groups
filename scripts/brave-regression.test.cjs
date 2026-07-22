@@ -280,6 +280,36 @@ async function run() {
     assert.equal(backupOptionValues.maxSave, '48');
     console.log('PASS local backup options render numeric defaults');
 
+    const automaticBackupSchedule = await worker.evaluate(`(async() => {
+      await OptionManager.updateOption('backup-download-enable', false);
+      for (const timer of Object.keys(OptionManager.options.backup.download.time)) {
+        OptionManager.options.backup.download.time[timer] = timer === 't_5mins';
+      }
+      await OptionManager.updateOption('backup-download-enable', true);
+      const alarmName = ExtensionStorageManager.Backup.ALARM_PREFIX + 't_5mins';
+      const firstAlarm = await browser.alarms.get(alarmName);
+      await ExtensionStorageManager.Backup.init();
+      const alarmAfterInit = await browser.alarms.get(alarmName);
+      await OptionManager.updateOption('backup-download-time-t_5mins', false);
+      const alarmAfterDisable = await browser.alarms.get(alarmName);
+      await OptionManager.updateOption('backup-download-time-t_5mins', true);
+      const alarmAfterEnable = await browser.alarms.get(alarmName);
+      return {
+        firstScheduledTime: firstAlarm && firstAlarm.scheduledTime,
+        scheduledTimeAfterInit: alarmAfterInit && alarmAfterInit.scheduledTime,
+        alarmAfterDisable: Boolean(alarmAfterDisable),
+        alarmAfterEnable: Boolean(alarmAfterEnable),
+      };
+    })()`);
+    assert.ok(automaticBackupSchedule.firstScheduledTime);
+    assert.equal(
+      automaticBackupSchedule.scheduledTimeAfterInit,
+      automaticBackupSchedule.firstScheduledTime,
+    );
+    assert.equal(automaticBackupSchedule.alarmAfterDisable, false);
+    assert.equal(automaticBackupSchedule.alarmAfterEnable, true);
+    console.log('PASS automatic backup alarms update without resetting on worker initialization');
+
     const operationResult = await worker.evaluate(`(async() => {
       const pause = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
       const suffix = Date.now().toString();
@@ -536,7 +566,7 @@ async function run() {
     assert.equal(persisted.theme, operationResult.expectedTheme);
     console.log('PASS groups, moved tab, and options survive service worker reload');
 
-    console.log('Brave MV3 regression: 11 checks passed');
+    console.log('Brave MV3 regression: 12 checks passed');
   } finally {
     if (page) page.close();
     if (optionsPage) optionsPage.close();

@@ -71,7 +71,7 @@ async function init() {
   BackgroundHelper.refreshOptionsUI();
 
   await ExtensionStorageManager.Local.planBackUp();
-  ExtensionStorageManager.Backup.init();
+  await ExtensionStorageManager.Backup.init();
   BackgroundHelper.install = false;
   BackgroundHelper.initialized = true;
 

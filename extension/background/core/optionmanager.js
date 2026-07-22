@@ -63,7 +63,7 @@ OptionManager.updateOption = async function(optionName, optionValue) {
     GroupManager.eventlistener.fire(GroupManager.EVENT_PREPARE);
     break;
   case "backup-download-enable":
-    OptionManager.onDownloadBackUpEnableChange(optionValue);
+    await OptionManager.onDownloadBackUpEnableChange(optionValue);
     break;
   case "backup-local-enable":
     await OptionManager.onLocalBackUpEnableChange(optionValue);
@@ -81,8 +81,8 @@ OptionManager.updateOption = async function(optionName, optionValue) {
     await OptionManager.onRemoveUnknownHiddenTabsChange(optionValue);
     break;
   }
-  if (optionName.startsWith("backup-time-")) {
-    OptionManager.onBackUpTimerChange(
+  if (optionName.startsWith("backup-download-time-")) {
+    await OptionManager.onBackUpTimerChange(
       optionName.substring("backup-download-time-".length),
       optionValue);
   }
