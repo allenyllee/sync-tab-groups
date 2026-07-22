@@ -168,6 +168,7 @@ async function run() {
   browser.stderr.on('data', chunk => browserErrors += chunk.toString());
   let worker;
   let page;
+  let optionsPage;
   let controlPage;
   let browserClient;
 
@@ -239,6 +240,26 @@ async function run() {
     assert.ok(popupResult.contentChildren > 0, 'popup did not render');
     assert.match(popupResult.fontFamily, /FontAwesome/i);
     console.log('PASS popup renders with Font Awesome icons');
+
+    const optionsCreated = await browserClient.send('Target.createTarget', {
+      url: `chrome-extension://${extensionId}/options/option-page.html`,
+    });
+    const optionsTarget = await waitFor(async() => {
+      const targets = await getJson(`http://127.0.0.1:${port}/json/list`);
+      return targets.find(target => target.id === optionsCreated.targetId);
+    }, 'options target');
+    optionsPage = await new CdpClient(optionsTarget.webSocketDebuggerUrl).connect();
+    await optionsPage.send('Runtime.enable');
+    const backupOptionValues = await waitFor(() => optionsPage.evaluate(`(() => {
+      if (document.readyState !== 'complete') return null;
+      const interval = document.querySelector('#backup-local-intervalTime');
+      const maxSave = document.querySelector('#backup-local-maxSave');
+      if (!interval || !maxSave) return null;
+      return {interval: interval.value, maxSave: maxSave.value};
+    })()`), 'local backup options');
+    assert.equal(backupOptionValues.interval, '1');
+    assert.equal(backupOptionValues.maxSave, '48');
+    console.log('PASS local backup options render numeric defaults');
 
     const operationResult = await worker.evaluate(`(async() => {
       const pause = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -417,9 +438,10 @@ async function run() {
     assert.equal(persisted.theme, operationResult.expectedTheme);
     console.log('PASS groups, moved tab, and options survive service worker reload');
 
-    console.log('Brave MV3 regression: 8 checks passed');
+    console.log('Brave MV3 regression: 9 checks passed');
   } finally {
     if (page) page.close();
+    if (optionsPage) optionsPage.close();
     if (controlPage) controlPage.close();
     if (worker) worker.close();
     if (browserClient) browserClient.close();

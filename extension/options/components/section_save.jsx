@@ -167,13 +167,13 @@ class SaveSectionStandalone extends React.Component {
                 help="Examples: 1, 0.5 (30 mins), 24 (1 day)..."
                 id="backup-local-intervalTime"
                 onChange={this.props.onOptionChange}
-                name={toString(this.props.options.backup.local.intervalTime)}
+                name={String(this.props.options.backup.local.intervalTime)}
               />
               <TextInput
                 label="Max backup"
                 id="backup-local-maxSave"
                 onChange={this.props.onOptionChange}
-                name={toString(this.props.options.backup.local.maxSave)}
+                name={String(this.props.options.backup.local.maxSave)}
               />
             </div>
             <select size="6"
