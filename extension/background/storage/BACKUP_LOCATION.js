@@ -1,1 +1,1 @@
-export default "synctabgroups-backup/"
+export default "sync-tab-groups/backups/"

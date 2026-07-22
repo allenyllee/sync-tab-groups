@@ -785,7 +785,7 @@
   },
 
   "options_groups_backup_manual_file": {
-    "message": "Saved in a distinct file, called manual, overwritten as well.",
+    "message": "Each manual backup is saved in a distinct timestamped file.",
     "description": ""
   },
 

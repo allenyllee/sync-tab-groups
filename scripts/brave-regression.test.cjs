@@ -61,6 +61,17 @@ function getFreePort() {
   });
 }
 
+function getBrowserPath(filePath) {
+  if (process.platform !== 'linux'
+      || !fs.existsSync('/proc/sys/fs/binfmt_misc/WSLInterop')) {
+    return filePath;
+  }
+
+  const result = spawnSync('wslpath', ['-w', filePath], {encoding: 'utf8'});
+  assert.equal(result.status, 0, `wslpath failed: ${result.stderr}`);
+  return result.stdout.trim();
+}
+
 class CdpClient {
   constructor(url) {
     this.nextId = 1;
@@ -152,6 +163,15 @@ async function run() {
 
   const port = await getFreePort();
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'stg-brave-test-'));
+  const downloadDirectory = path.join(profile, 'downloads');
+  fs.mkdirSync(downloadDirectory);
+  fs.mkdirSync(path.join(profile, 'Default'));
+  fs.writeFileSync(path.join(profile, 'Default', 'Preferences'), JSON.stringify({
+    download: {
+      default_directory: getBrowserPath(downloadDirectory),
+      prompt_for_download: false,
+    },
+  }));
   const browser = spawn(brave, [
     `--user-data-dir=${profile}`,
     `--disable-extensions-except=${extensionRoot}`,
@@ -178,7 +198,6 @@ async function run() {
       'Brave DevTools endpoint',
     );
     browserClient = await new CdpClient(version.webSocketDebuggerUrl).connect();
-
     const firstWorkerTarget = await waitFor(async() => {
       const targets = await getJson(`http://127.0.0.1:${port}/json/list`);
       return targets.find(target => target.type === 'service_worker'
@@ -375,6 +394,85 @@ async function run() {
     assert.equal(storedBeforeRestart.movedGroup, true);
     assert.equal(storedBeforeRestart.theme, operationResult.expectedTheme);
 
+    const backupDirectory = path.join(downloadDirectory, 'sync-tab-groups', 'backups');
+    const backupResult = await worker.evaluate(`(async() => {
+      const logIndex = LogManager.logs.length;
+      const downloadChanges = [];
+      const onCreated = item => downloadChanges.push({
+        event: 'created',
+        id: item.id,
+        filename: item.filename,
+        state: item.state,
+      });
+      const onChanged = delta => downloadChanges.push({
+        event: 'changed',
+        id: delta.id,
+        filename: delta.filename && delta.filename.current,
+        state: delta.state && delta.state.current,
+        error: delta.error && delta.error.current,
+      });
+      browser.downloads.onCreated.addListener(onCreated);
+      browser.downloads.onChanged.addListener(onChanged);
+      await ExtensionStorageManager.Backup.backup('manual');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      browser.downloads.onCreated.removeListener(onCreated);
+      browser.downloads.onChanged.removeListener(onChanged);
+      return {
+        logs: LogManager.logs.slice(logIndex),
+        downloadChanges,
+      };
+    })()`);
+    await worker.evaluate(`ExtensionStorageManager.Backup.backup('manual')`);
+    let backupFilenames;
+    try {
+      backupFilenames = await waitFor(() => {
+        if (!fs.existsSync(backupDirectory)) return null;
+        const filenames = fs.readdirSync(backupDirectory).filter(filename =>
+          /^synctabgroups-backup-manual-\d{8}-\d{6}-\d{3}(?: \(\d+\))?\.json$/
+            .test(filename));
+        return filenames.length === 2 ? filenames : null;
+      }, 'two timestamped manual backup files');
+    } catch (error) {
+      const downloadEvents = browserClient.events.filter(event =>
+        event.method.startsWith('Browser.download'));
+      throw new Error(`${error.message}; backup logs: ${JSON.stringify(backupResult)}; `
+        + `download events: ${JSON.stringify(downloadEvents)}`, {cause: error});
+    }
+    const downloadedBackup = JSON.parse(fs.readFileSync(
+      path.join(backupDirectory, backupFilenames[0]),
+      'utf8',
+    ));
+    assert.deepEqual(downloadedBackup.version, ['syncTabGroups', 1]);
+    assert.ok(downloadedBackup.groups.some(group =>
+      group.id === operationResult.groupAId
+      && group.title === `Regression A renamed ${operationResult.suffix}`));
+    assert.ok(downloadedBackup.groups.some(group =>
+      group.id === operationResult.groupBId
+      && group.tabs.some(tab => tab.url.includes(
+        `shortcut-help.html?stg-regression=${operationResult.suffix}`,
+      ))));
+    console.log('PASS repeated manual backups write distinct timestamped group JSON files');
+
+    const exportDirectory = path.join(downloadDirectory, 'sync-tab-groups', 'exports');
+    const exportSucceeded = await worker.evaluate(
+      `ExtensionStorageManager.File.downloadGroups(GroupManager.groups)`,
+    );
+    assert.equal(exportSucceeded, true);
+    const exportFilename = await waitFor(() => {
+      if (!fs.existsSync(exportDirectory)) return null;
+      return fs.readdirSync(exportDirectory).find(filename =>
+        /^syncTabGroups-manual-\d{8}-\d{6}\.json$/.test(filename));
+    }, 'downloaded group export file');
+    const downloadedExport = JSON.parse(fs.readFileSync(
+      path.join(exportDirectory, exportFilename),
+      'utf8',
+    ));
+    assert.deepEqual(downloadedExport.version, ['syncTabGroups', 1]);
+    assert.ok(downloadedExport.groups.some(group =>
+      group.id === operationResult.groupAId
+      && group.title === `Regression A renamed ${operationResult.suffix}`));
+    console.log('PASS manual export writes valid group JSON');
+
     const controlTargetResult = await browserClient.send('Target.createTarget', {
       url: 'about:blank',
     });
@@ -438,7 +536,7 @@ async function run() {
     assert.equal(persisted.theme, operationResult.expectedTheme);
     console.log('PASS groups, moved tab, and options survive service worker reload');
 
-    console.log('Brave MV3 regression: 9 checks passed');
+    console.log('Brave MV3 regression: 11 checks passed');
   } finally {
     if (page) page.close();
     if (optionsPage) optionsPage.close();

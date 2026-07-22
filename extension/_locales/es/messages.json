@@ -630,7 +630,7 @@
     "description": ""
   },
   "options_groups_backup_manual_file": {
-    "message": "Guardado en un archivo distinto, manual, tambien es sobreescrito.",
+    "message": "Cada respaldo manual se guarda en un archivo distinto con una marca de tiempo.",
     "description": ""
   },
   "options_groups_backup_every": {

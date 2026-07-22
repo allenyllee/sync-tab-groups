@@ -5,6 +5,7 @@ import GroupManager from '../core/groupmanager'
 import Utils from '../utils/utils'
 import LogManager from '../error/logmanager'
 import TabManager from '../core/tabmanager/tabManager'
+import EXPORT_LOCATION from './EXPORT_LOCATION'
 
 const FileStorage = {};
 
@@ -20,12 +21,12 @@ FileStorage.downloadGroups = async function(groups) {
 
     let d = new Date();
     let url = Utils.createGroupsJsonFile(export_groups, {prettify: true});
-    let filename = "syncTabGroups-manual-" + d.getFullYear() + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2) + "-" + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2) + ".json";
+    let filename = EXPORT_LOCATION + "syncTabGroups-manual-" + d.getFullYear() + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2) + "-" + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2) + ".json";
 
     let id = await browser.downloads.download({
       url: url,
       filename: filename,
-      saveAs: true,
+      saveAs: false,
     });
 
     await Utils.waitDownload(id);

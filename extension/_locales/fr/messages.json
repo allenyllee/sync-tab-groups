@@ -630,7 +630,7 @@
     "description": ""
   },
   "options_groups_backup_manual_file": {
-    "message": "Sauvegardé dans un fichier unique, nommé \"manual\", aussi écrasé à chaque nouvelle sauvegarde.",
+    "message": "Chaque sauvegarde manuelle est enregistrée dans un fichier horodaté distinct.",
     "description": ""
   },
   "options_groups_backup_every": {

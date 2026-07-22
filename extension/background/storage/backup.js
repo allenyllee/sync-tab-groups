@@ -6,9 +6,11 @@ import LogManager from '../error/logmanager'
 import OptionManager from '../core/optionmanager'
 import GroupManager from '../core/groupmanager'
 import OPTION_CONSTANTS from '../core/OPTION_CONSTANTS'
+import BACKUP_LOCATION from './BACKUP_LOCATION'
 
 const BackupStorage = {};
 BackupStorage.ALARM_PREFIX = "sync-tab-groups-download-backup-";
+BackupStorage.LOCATION = BACKUP_LOCATION;
 
 BackupStorage.TIMERS = Utils.setObjectPropertiesWith(OPTION_CONSTANTS.TIMERS(), undefined);
 
@@ -87,10 +89,22 @@ BackupStorage.backup = async function(time, groups=GroupManager.groups) {
       GroupManager.getGroupsWithoutPrivate(groups)
     );
 
+    const manual = time === "manual";
+    if (manual) {
+      const date = new Date();
+      time = "manual-" + date.getFullYear()
+        + ("0" + (date.getMonth() + 1)).slice(-2)
+        + ("0" + date.getDate()).slice(-2)
+        + "-" + ("0" + date.getHours()).slice(-2)
+        + ("0" + date.getMinutes()).slice(-2)
+        + ("0" + date.getSeconds()).slice(-2)
+        + "-" + ("00" + date.getMilliseconds()).slice(-3);
+    }
+
     let id = await browser.downloads.download({
       url: url,
       filename: BackupStorage.LOCATION + "synctabgroups-backup-" + time + ".json",
-      conflictAction: "overwrite",
+      conflictAction: manual ? "uniquify" : "overwrite",
       saveAs: false,
     });
 

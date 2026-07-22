@@ -775,7 +775,7 @@
   },
 
   "options_groups_backup_manual_file": {
-    "message": "Gespeichert in einer eigenen Datei, manuell aufgerufen. Datei wird jeweils überschrieben.",
+    "message": "Jede manuelle Sicherung wird mit Zeitstempel in einer eigenen Datei gespeichert.",
     "description": ""
   },
 
