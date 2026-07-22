@@ -45,6 +45,12 @@ class AboutSection extends React.Component {
           </a>
         </div>
         <h2>
+          Release Notes (0.9.3)
+        </h2>
+        <ul>
+          <li>Prevent Brave regression tests from showing misleading desktop notifications</li>
+        </ul>
+        <h2>
           Release Notes (0.9.2)
         </h2>
         <ul>
