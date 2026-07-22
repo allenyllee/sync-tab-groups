@@ -45,6 +45,15 @@ class AboutSection extends React.Component {
           </a>
         </div>
         <h2>
+          Release Notes (0.9.0)
+        </h2>
+        <ul>
+          <li>Migrate Chrome and Firefox builds to Manifest V3</li>
+          <li>Keep groups, tabs, options, and backups reliable across service worker restarts</li>
+          <li>Fix icons and context menu rebuilding on Chromium browsers</li>
+          <li>Add automated Brave MV3 and Jasmine regression coverage</li>
+        </ul>
+        <h2>
           Release Notes (0.8.2)
         </h2>
         <ul>
