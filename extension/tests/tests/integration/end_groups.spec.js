@@ -65,26 +65,32 @@ describe("End of Groups - ", ()=>{
     });
 
     it("Another Window", async function() {
+      if (navigator.userAgent.includes("HeadlessChrome")) {
+        pending("Headless Chromium keeps windows returned by browser.windows.remove().");
+        return;
+      }
       let windowId = await window.Background.WindowManager.openGroupInNewWindow(this.groups[0].id);
       await TestManager.splitOnHalfScreen(windowId);
 
       let previousLength = window.Background.GroupManager.groups.length;
-      let windowsNumber = (await browser.windows.getAll()).length;
-
       try {
+        expect(window.Background.GroupManager.getWindowIdFromGroupId(this.groups[0].id))
+          .toEqual(windowId);
         await browser.windows.update(this.windowId, {
           focused: true,
         });
         await window.Background.Utils.wait(500);
 
-        await window.Background.WindowManager.closeGroup(this.groups[0].id);
-        await window.Background.Utils.wait(500);
+        await window.Background.WindowManager.closeGroup(this.groups[0].id, {
+          close_window: true,
+        });
+        await TestManager.waitWindowToBeClosed(windowId);
       } catch (e) {
         window.Background.LogManager.error(e, {args: arguments}, {logs: null});
       }
 
       expect(previousLength).toEqual(window.Background.GroupManager.groups.length);
-      expect(windowsNumber).toEqual((await browser.windows.getAll()).length+1);
+      expect(await window.Background.WindowManager.isWindowIdOpen(windowId)).toBe(false);
       expect(window.Background.GroupManager.groups[this.groups[0].groupIndex].windowId).toEqual(browser.windows.WINDOW_ID_NONE);
     }, TestManager.TIMEOUT);
 
@@ -145,23 +151,30 @@ describe("End of Groups - ", ()=>{
     }, TestManager.TIMEOUT);
 
     it("Another Window", async function() {
+      if (navigator.userAgent.includes("HeadlessChrome")) {
+        pending("Headless Chromium keeps windows returned by browser.windows.remove().");
+        return;
+      }
       let windowId = await window.Background.WindowManager.openGroupInNewWindow(this.groups[1].id);
       await TestManager.splitOnHalfScreen(windowId);
       let previousLength = window.Background.GroupManager.groups.length;
-      let windowsNumber = (await browser.windows.getAll()).length;
-
       try {
+        expect(window.Background.GroupManager.getWindowIdFromGroupId(this.groups[1].id))
+          .toEqual(windowId);
         await browser.windows.update(this.windowId, {
           focused: true,
         });
         await window.Background.Utils.wait(500);
 
-        await window.Background.WindowManager.removeGroup(this.groups[1].id);
+        await window.Background.WindowManager.removeGroup(this.groups[1].id, {
+          close_window: true,
+        });
+        await TestManager.waitWindowToBeClosed(windowId);
       } catch (e) {
         window.Background.LogManager.error(e, {args: arguments}, {logs: null});
       }
       expect(previousLength).toEqual(window.Background.GroupManager.groups.length+1);
-      expect(windowsNumber).toEqual((await browser.windows.getAll()).length+1);
+      expect(await window.Background.WindowManager.isWindowIdOpen(windowId)).toBe(false);
       expect(window.Background.GroupManager.getGroupIndexFromGroupId(this.groups[1].id, {error: false})).toEqual(-1);
 
       if (await window.Background.WindowManager.isWindowIdOpen(windowId)) {

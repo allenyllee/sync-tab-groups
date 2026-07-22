@@ -187,6 +187,7 @@ async function run() {
     const extensionId = new URL(firstWorkerTarget.url).hostname;
     worker = await new CdpClient(firstWorkerTarget.webSocketDebuggerUrl).connect();
     await worker.send('Runtime.enable');
+    await worker.send('Log.enable');
     try {
       await waitFor(
         () => worker.evaluate(`Boolean(
@@ -305,7 +306,19 @@ async function run() {
 
       await OptionManager.updateOption('popup-whiteTheme', !originalTheme);
       await GroupManager.waitForStore();
-      await pause(500);
+      await pause(1500);
+
+      const contextMenuErrors = LogManager.logs.filter(log =>
+        log.message && log.message.includes('Cannot find menu item'));
+      if (contextMenuErrors.length) {
+        throw new Error('context menu rebuild used stale menu ids: '
+          + contextMenuErrors.map(log => log.message).join(', '));
+      }
+      const ungroupedWindowWarnings = LogManager.logs.filter(log =>
+        log.message === 'Failed to find group in window');
+      if (ungroupedWindowWarnings.length) {
+        throw new Error('normal ungrouped-window state was logged as a warning');
+      }
 
       return {
         suffix,
@@ -314,7 +327,15 @@ async function run() {
         expectedTheme: !originalTheme,
       };
     })()`);
+    const runtimeMenuErrors = worker.events
+      .filter(event => event.method === 'Log.entryAdded')
+      .map(event => event.params.entry.text)
+      .filter(message => message.includes('Cannot find menu item'));
+    assert.deepEqual(runtimeMenuErrors, [],
+      `context menu runtime errors: ${runtimeMenuErrors.join(', ')}`);
     console.log('PASS create, rename, select, move tab, switch, and close groups');
+    console.log('PASS context menus rebuild without stale ids');
+    console.log('PASS ungrouped window transitions do not emit warnings');
     console.log('PASS option update is written to extension storage');
 
     const storedBeforeRestart = await worker.evaluate(`(async() => {
@@ -396,7 +417,7 @@ async function run() {
     assert.equal(persisted.theme, operationResult.expectedTheme);
     console.log('PASS groups, moved tab, and options survive service worker reload');
 
-    console.log('Brave MV3 regression: 6 checks passed');
+    console.log('Brave MV3 regression: 8 checks passed');
   } finally {
     if (page) page.close();
     if (controlPage) controlPage.close();
@@ -428,7 +449,18 @@ async function run() {
   }
 }
 
-run().catch(error => {
-  console.error(error.stack || error);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  run().catch(error => {
+    console.error(error.stack || error);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  CdpClient,
+  delay,
+  findBrave,
+  getFreePort,
+  getJson,
+  waitFor,
+};

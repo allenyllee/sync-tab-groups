@@ -122,9 +122,9 @@ OptionManager.onRemoveUnknownHiddenTabsChange = async function(value) {
   */
 OptionManager.onDownloadBackUpEnableChange = function(value) {
   if (value) {
-    ExtensionStorageManager.Backup.init();
+    return ExtensionStorageManager.Backup.init();
   } else {
-    ExtensionStorageManager.Backup.stopAll();
+    return ExtensionStorageManager.Backup.stopAll();
   }
 }
 
@@ -132,7 +132,7 @@ OptionManager.onLocalBackUpEnableChange = async function(value) {
   if (value) {
     await ExtensionStorageManager.Local.planBackUp();
   } else {
-    ExtensionStorageManager.Local.abortBackUp();
+    await ExtensionStorageManager.Local.abortBackUp();
   }
 }
 
@@ -141,9 +141,9 @@ OptionManager.onLocalBackUpEnableChange = async function(value) {
   */
 OptionManager.onBackUpTimerChange = function(timer, value) {
   if (value) {
-    ExtensionStorageManager.Backup.startTimer(timer);
+    return ExtensionStorageManager.Backup.startTimer(timer);
   } else {
-    ExtensionStorageManager.Backup.stopTimer(timer);
+    return ExtensionStorageManager.Backup.stopTimer(timer);
   }
 }
 

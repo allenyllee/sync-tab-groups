@@ -8,8 +8,8 @@ const plugins = [
   }),
   new CopyWebpackPlugin({
     patterns: [{
-      from: 'node_modules/jasmine-core/lib/jasmine-core/*.*',
-      to: 'tests/jasmine-core/',
+      from: 'node_modules/jasmine-core/lib/jasmine-core',
+      to: 'tests/jasmine-core',
       context: '../',
     },
     {

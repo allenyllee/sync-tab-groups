@@ -9,6 +9,20 @@ describe("window.Background.GroupManager", () => {
 
   beforeEach(TestManager.initBeforeEach());
 
+  describe(".getGroupIdInWindow function: ", () => {
+    it("returns -1 without warning for an ungrouped window", () => {
+      spyOn(window.Background.LogManager, "warning");
+
+      const groupId = window.Background.GroupManager.getGroupIdInWindow(
+        123456789,
+        {error: false},
+      );
+
+      expect(groupId).toEqual(-1);
+      expect(window.Background.LogManager.warning).not.toHaveBeenCalled();
+    });
+  });
+
   describe(".coherentActiveTabInGroups function: ", () => {
 
     // TODO not good unit test style
@@ -247,8 +261,9 @@ describe("window.Background.GroupManager", () => {
         groupsLength: 4,
         tabsLength: 4,
       });
-      let saveGroups = await window.Background.ExtensionStorageManager.Local.loadGroups();
-      await window.Background.ExtensionStorageManager.Local.saveGroups(groups);
+      let saveGroups = window.Background.GroupManager.groups;
+      spyOn(window.Background.ExtensionStorageManager.Local, "loadGroups")
+        .and.returnValue(Promise.resolve(groups));
 
       await window.Background.GroupManager.reloadGroupsFromDisk();
       window.Background.GroupManager.groups.forEach((group)=>{
@@ -258,7 +273,6 @@ describe("window.Background.GroupManager", () => {
 
       expect(window.Background.GroupManager.groups).toEqualGroups(groups);
       window.Background.GroupManager.groups = saveGroups;
-      await window.Background.ExtensionStorageManager.Local.saveGroups(saveGroups);
     });
 
     it("is well changing window.Background.GroupManager.groups", async()=>{
@@ -269,14 +283,13 @@ describe("window.Background.GroupManager", () => {
       });
       window.Background.GroupManager.groups = [];
 
-      //spyOn(window.Background.ExtensionStorageManager.Local, "loadGroups").and.returnValue(saveGroups);
-      await window.Background.ExtensionStorageManager.Local.saveGroups(targetGroups);
+      spyOn(window.Background.ExtensionStorageManager.Local, "loadGroups")
+        .and.returnValue(Promise.resolve(targetGroups));
 
       await window.Background.GroupManager.reloadGroupsFromDisk();
 
       expect(window.Background.GroupManager.groups.length).toEqual(targetGroups.length);
       window.Background.GroupManager.groups = saveGroups;
-      await window.Background.ExtensionStorageManager.Local.saveGroups(saveGroups);
     });
 
   });

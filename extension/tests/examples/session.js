@@ -273,7 +273,7 @@ Session.getFakeTab = function() {
 }
 
 Session.getFakeUrl = function(random=String(TestManager.getRandom(0,999999999))) {
-  return browser.extension.getURL("/tests/test-page/template/template.html")
+  return browser.runtime.getURL("/tests/test-page/template/template.html")
         + "?test=" + random;
 }
 
@@ -285,7 +285,7 @@ PROBLEMS:
  - On creation will not contain the definitve URL, once should add extra logic...
 
 Session.getFakeUrl = function({title="Test", url="/test"}={}) {
-  return browser.extension.getURL("/tests/test-page/template/template.html")
+  return browser.runtime.getURL("/tests/test-page/template/template.html")
           + "?title=" + encodeURIComponent(title)
           + "&url=" + encodeURIComponent(url)
 }
@@ -390,7 +390,7 @@ Session.ListOfPrivTabURLs = [{
 
 Session.ListOfExtensionTabURLs = [{
   "title": "Preferences",
-  "url": browser.extension.getURL("/options/option-page.html"),
+  "url": browser.runtime.getURL("/options/option-page.html"),
   "favIconUrl": "/share/icons/tabspace-active-64.png",
 }];
 

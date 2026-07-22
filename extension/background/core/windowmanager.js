@@ -393,7 +393,7 @@ WindowManager.selectNextGroup = async function({
  * @param {number} groupId (deafault=-1)
  * @returns {Promise}
  */
-WindowManager.removeGroup = async function(groupId = -1) {
+WindowManager.removeGroup = async function(groupId = -1, {close_window = false}={}) {
   try {
     if (groupId === -1) {
       const currentWindow = await browser.windows.getLastFocused();
@@ -419,7 +419,7 @@ WindowManager.removeGroup = async function(groupId = -1) {
 
     // Is open
     if (GroupManager.isGroupIndexInOpenWindow(groupIndex)) {
-      await WindowManager.closeGroup(groupId);
+      await WindowManager.closeGroup(groupId, {close_window});
     }
     await GroupManager.removeGroupFromId(groupId);
     return "WindowManager.removeGroup done on groupId " + groupId;

@@ -159,16 +159,17 @@ TestUtils.waitWindowToBeFocused = async function(windowId, {
 }
 
 TestUtils.waitWindowToBeClosed = async function(windowId, {
-  maxLoop=20,
+  maxLoop=100,
   waitPerLoop=50, //ms
 }={}) {
   for (let i = 0; i < maxLoop; i++) {
     if ((await browser.windows.getAll())
-      .filter(w=>w.id===windowId) === 0) {
-      break;
+      .filter(w=>w.id===windowId).length === 0) {
+      return true;
     }
     await Utils.wait(waitPerLoop);
   }
+  return false;
 }
 
 /**

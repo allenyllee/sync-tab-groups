@@ -7,10 +7,7 @@ describe("Download Back Up: ", ()=>{
   // Set back previous states
   afterAll(TestManager.initIntegrationAfterAll());
 
-  it("Check timers are triggering automatic backup", ()=>{
-
-    TestManager.installFakeTime();
-
+  it("Check alarms are triggering automatic backup", async()=>{
     // Set options
     window.Background.OptionManager.options.backup.download = window.Background.Utils.getCopy(window.Background.OptionManager.options.backup.download);
 
@@ -22,16 +19,15 @@ describe("Download Back Up: ", ()=>{
 
     for (let time in OPTION_CONSTANTS.TIMERS()) {
       window.Background.OptionManager.options.backup.download.time[time] = true;
-      window.Background.ExtensionStorageManager.Backup.init();
-      // Trigger timers
-      jasmine.clock().tick(OPTION_CONSTANTS.TIMERS()[time]);
+      await window.Background.ExtensionStorageManager.Backup.init();
+      const alarmName = window.Background.ExtensionStorageManager.Backup.ALARM_PREFIX + time;
+      expect(await browser.alarms.get(alarmName)).toBeDefined();
+      await window.Background.ExtensionStorageManager.Backup.onAlarm({name: alarmName});
 
       expect(window.Background.ExtensionStorageManager.Backup.backup).toHaveBeenCalledWith(time.substring(2));
 
       window.Background.OptionManager.options.backup.download.time[time] = false;
     }
-
-    // Reset options
-    TestManager.uninstallFakeTime();
+    await window.Background.ExtensionStorageManager.Backup.stopAll();
   });
 });

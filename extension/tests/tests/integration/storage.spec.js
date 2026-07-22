@@ -97,102 +97,107 @@ describe('Storage', () => {
         }));
       })
 
-      it('Update intervalTime option do not accept wrong values', () => {
+      it('Update intervalTime option do not accept wrong values', async() => {
         const local = window.Background.OptionManager.options.backup.local;
-        TestManager.changeSomeOptions({"backup-local-intervalTime": 52})
+        await TestManager.changeSomeOptions({"backup-local-intervalTime": 52})
 
         expect(local.intervalTime).toEqual(52);
 
         //  NaN - aaa - 0
-        window.Background.OptionManager.updateOption("backup-local-intervalTime", "abc");
+        await window.Background.OptionManager.updateOption("backup-local-intervalTime", "abc");
 
         expect(local.intervalTime).toEqual(52);
 
-        window.Background.OptionManager.updateOption("backup-local-intervalTime", "NaN");
+        await window.Background.OptionManager.updateOption("backup-local-intervalTime", "NaN");
 
         expect(local.intervalTime).toEqual(52);
 
         // Min value trigger
-        window.Background.OptionManager.updateOption("backup-local-intervalTime", 0);
+        await window.Background.OptionManager.updateOption("backup-local-intervalTime", 0);
 
         expect(local.intervalTime).toEqual(0.01);
-        window.Background.OptionManager.updateOption("backup-local-intervalTime", -10);
+        await window.Background.OptionManager.updateOption("backup-local-intervalTime", -10);
 
         expect(local.intervalTime).toEqual(0.01);
 
         // Accept 10
-        window.Background.OptionManager.updateOption("backup-local-intervalTime", 10);
+        await window.Background.OptionManager.updateOption("backup-local-intervalTime", 10);
 
         expect(local.intervalTime).toEqual(10);
 
-        window.Background.OptionManager.updateOption("backup-local-intervalTime", 11.2);
+        await window.Background.OptionManager.updateOption("backup-local-intervalTime", 11.2);
 
         expect(local.intervalTime).toEqual(11.2);
 
-        window.Background.OptionManager.updateOption("backup-local-intervalTime", "23");
+        await window.Background.OptionManager.updateOption("backup-local-intervalTime", "23");
 
         expect(local.intervalTime).toEqual(23);
       })
 
-      it('Update maxSave option do not accept wrong values', () => {
+      it('Update maxSave option do not accept wrong values', async() => {
         const local = window.Background.OptionManager.options.backup.local;
-        TestManager.changeSomeOptions({"backup-local-maxSave": 52})
+        await TestManager.changeSomeOptions({"backup-local-maxSave": 52})
 
         expect(local.maxSave).toEqual(52);
 
         //  NaN - aaa - 0
-        window.Background.OptionManager.updateOption("backup-local-maxSave", "abc");
+        await window.Background.OptionManager.updateOption("backup-local-maxSave", "abc");
 
         expect(local.maxSave).toEqual(52);
 
-        window.Background.OptionManager.updateOption("backup-local-maxSave", "NaN");
+        await window.Background.OptionManager.updateOption("backup-local-maxSave", "NaN");
 
         expect(local.maxSave).toEqual(52);
 
         // Min value trigger
-        window.Background.OptionManager.updateOption("backup-local-maxSave", 0);
+        await window.Background.OptionManager.updateOption("backup-local-maxSave", 0);
 
         expect(local.maxSave).toEqual(1);
-        window.Background.OptionManager.updateOption("backup-local-maxSave", -10);
+        await window.Background.OptionManager.updateOption("backup-local-maxSave", -10);
 
         expect(local.maxSave).toEqual(1);
 
         // Accept 10
-        window.Background.OptionManager.updateOption("backup-local-maxSave", 10);
+        await window.Background.OptionManager.updateOption("backup-local-maxSave", 10);
 
         expect(local.maxSave).toEqual(10);
 
-        window.Background.OptionManager.updateOption("backup-local-maxSave", 11.2);
+        await window.Background.OptionManager.updateOption("backup-local-maxSave", 11.2);
 
         expect(local.maxSave).toEqual(11);
 
-        window.Background.OptionManager.updateOption("backup-local-maxSave", 11.7);
+        await window.Background.OptionManager.updateOption("backup-local-maxSave", 11.7);
 
         expect(local.maxSave).toEqual(11);
 
-        window.Background.OptionManager.updateOption("backup-local-maxSave", "23");
+        await window.Background.OptionManager.updateOption("backup-local-maxSave", "23");
 
         expect(local.maxSave).toEqual(23);
       })
     });
 
     describe('Automatic ', () => {
-      it('Back up (first) and set timeout', async() => {
+      const getAlarm = () => browser.alarms.get(
+        window.Background.ExtensionStorageManager.Local.BACKUP_ALARM
+      );
+
+      afterEach(async() => {
+        await window.Background.ExtensionStorageManager.Local.abortBackUp();
+      });
+
+      it('Back up (first) and schedule alarm', async() => {
         const ref_groups = window.Background.Utils.getCopy(window.Background.GroupManager.groups);
         window.Background.OptionManager.options.backup.local.enable = true;
         spyOn(window.Background.ExtensionStorageManager.Local, 'addBackup').and.returnValue(true);
 
         const id = await window.Background.ExtensionStorageManager.Local.planBackUp(ref_groups);
 
-        expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
+        expect(await getAlarm()).toBeDefined();
         expect(id).not.toBe(undefined);
-
         expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
-
-        window.Background.ExtensionStorageManager.Local.abortBackUp();
       });
 
-      it('Back up (outdated) and set timeout', async() => {
+      it('Back up (outdated) and schedule alarm', async() => {
         const intervalTime = Math.floor(window.Background.OptionManager.options.backup.local.intervalTime * 3600 * 1000);
         await TestManager.swapLocalStorage({
           backupList: {
@@ -208,208 +213,58 @@ describe('Storage', () => {
 
         const id = await window.Background.ExtensionStorageManager.Local.planBackUp(ref_groups);
 
-        expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
+        expect(await getAlarm()).toBeDefined();
         expect(id).not.toBe(undefined);
         expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
-
-        window.Background.ExtensionStorageManager.Local.abortBackUp();
       });
 
-      it('Check timeout after backup', async() => {
-        try {
-          TestManager.installFakeTime();
+      it('Alarm triggers backup and reschedules itself', async() => {
+        window.Background.OptionManager.options.backup.local.enable = true;
+        spyOn(window.Background.ExtensionStorageManager.Local, 'addBackup').and.callThrough();
+        await window.Background.ExtensionStorageManager.Local.planBackUp();
+        expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
 
-          const intervalTime = Math.floor(window.Background.OptionManager.options.backup.local.intervalTime * 3600 * 1000);
+        await window.Background.ExtensionStorageManager.Local.onAlarm({
+          name: window.Background.ExtensionStorageManager.Local.BACKUP_ALARM,
+        });
 
-          spyOn(window.Background.ExtensionStorageManager.Local, 'addBackup').and.callThrough();
-          const ref_groups = window.Background.Utils.getCopy(window.Background.GroupManager.groups);
-          await window.Background.ExtensionStorageManager.Local.planBackUp(ref_groups, intervalTime);
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
-
-          jasmine.clock().tick(intervalTime);
-          await window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT_PROMISE;
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(2);
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
-
-          jasmine.clock().tick(intervalTime);
-          await window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT_PROMISE;
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(3);
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
-
-          window.Background.ExtensionStorageManager.Local.abortBackUp();
-        } catch (e) {return} finally {
-          TestManager.uninstallFakeTime();
-        }
-      }, 5000);
-
-      it('Not back up and set timeout (shorter than intervalTime)', async() => {
-        try {
-          TestManager.installFakeTime();
-          const diff = 1000;
-          window.Background.OptionManager.options.backup.local.intervalTime = 1000;
-          const intervalTime = Math.floor(window.Background.OptionManager.options.backup.local.intervalTime * 3600 * 1000);
-          await TestManager.swapLocalStorage({
-            backupList: {
-              "fake-shorter": {
-                date: (Date.now() - intervalTime + diff),
-              },
-            },
-          }, false);
-
-          const ref_groups = window.Background.Utils.getCopy(window.Background.GroupManager.groups);
-
-          spyOn(window.Background.ExtensionStorageManager.Local, 'addBackup').and.callThrough();
-
-          await window.Background.ExtensionStorageManager.Local.planBackUp(ref_groups);
-
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(0);
-
-          jasmine.clock().tick(diff);
-          await window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT_PROMISE;
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
-
-          jasmine.clock().tick(diff);
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
-
-          jasmine.clock().tick(intervalTime - diff);
-          await window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT_PROMISE;
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(2);
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
-
-          window.Background.ExtensionStorageManager.Local.abortBackUp();
-        } catch (e) {return} finally {
-          TestManager.uninstallFakeTime();
-        }
-
-      }, 5000);
-
-      it('Change option to stop backup', async() => {
-        try {
-          TestManager.installFakeTime();
-          let test = 0;
-
-          window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT = setTimeout(() => {
-            test = 100;
-          }, 10000);
-
-          await TestManager.changeSomeOptions({"backup-local-enable": false});
-
-          jasmine.clock().tick(10000);
-
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).toBe(undefined);
-          expect(test).toEqual(0);
-        } catch (e) {return} finally {
-          TestManager.uninstallFakeTime();
-        }
+        expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(2);
+        expect(await getAlarm()).toBeDefined();
       });
 
-      it('Change option to start backup', async() => {
-        try {
-          window.Background.ExtensionStorageManager.Local.abortBackUp();
-          TestManager.installFakeTime();
+      it('Change option to stop backup clears alarm', async() => {
+        window.Background.OptionManager.options.backup.local.enable = true;
+        await window.Background.ExtensionStorageManager.Local.planBackUp();
+        expect(await getAlarm()).toBeDefined();
 
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).toBe(undefined);
-          spyOn(window.Background.ExtensionStorageManager.Local, 'addBackup').and.callThrough();
+        await TestManager.changeSomeOptions({"backup-local-enable": false});
 
-          window.Background.OptionManager.options.backup.local.intervalTime = 10000;
+        expect(await getAlarm()).toBe(undefined);
+      });
 
-          await TestManager.changeSomeOptions({"backup-local-enable": true});
+      it('Change option to start backup schedules alarm', async() => {
+        window.Background.OptionManager.options.backup.local.enable = false;
+        await window.Background.ExtensionStorageManager.Local.abortBackUp();
+        spyOn(window.Background.ExtensionStorageManager.Local, 'addBackup').and.callThrough();
 
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
+        await TestManager.changeSomeOptions({"backup-local-enable": true});
 
-          jasmine.clock().tick(10000 * 3600 * 1000);
+        expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
+        expect(await getAlarm()).toBeDefined();
+      });
 
-          await window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT_PROMISE;
+      it('Changing interval reschedules alarm', async() => {
+        window.Background.OptionManager.options.backup.local.enable = true;
+        await window.Background.ExtensionStorageManager.Local.planBackUp();
+        const firstAlarm = await getAlarm();
 
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(2);
-          window.Background.ExtensionStorageManager.Local.abortBackUp();
-        } catch (e) {return} finally {
-          TestManager.uninstallFakeTime();
-        }
-      }, 5000);
+        await TestManager.changeSomeOptions({
+          "backup-local-intervalTime": 20,
+        });
 
-      it('Change option update to longer backup', async() => {
-        try {
-          const INTER = 10, // Even
-            INTER_MS = INTER * 1000 * 3600;
-          window.Background.ExtensionStorageManager.Local.abortBackUp();
-          TestManager.installFakeTime();
-
-          spyOn(window.Background.ExtensionStorageManager.Local, 'addBackup').and.callThrough();
-
-          window.Background.OptionManager.options.backup.local.enable = false;
-          window.Background.OptionManager.options.backup.local.intervalTime = INTER;
-
-          await TestManager.changeSomeOptions({"backup-local-enable": true});
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
-
-          await TestManager.changeSomeOptions({
-            "backup-local-intervalTime": INTER * 2,
-          });
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
-
-          jasmine.clock().tick(INTER_MS * 2);
-          await window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT_PROMISE;
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(2);
-
-          jasmine.clock().tick(INTER_MS * 2);
-          await window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT_PROMISE;
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(3);
-          window.Background.ExtensionStorageManager.Local.abortBackUp();
-        } catch (e) {return} finally {
-          TestManager.uninstallFakeTime();
-        }
-      }, 5000);
-
-      it('Change option update to shorter backup and should be done now', async() => {
-        try {
-          const INTER = 10, // Even
-            INTER_MS = INTER * 1000 * 3600;
-          window.Background.ExtensionStorageManager.Local.abortBackUp();
-          TestManager.installFakeTime();
-
-          spyOn(window.Background.ExtensionStorageManager.Local, 'addBackup').and.callThrough();
-
-          window.Background.OptionManager.options.backup.local.intervalTime = INTER;
-
-          await TestManager.changeSomeOptions({"backup-local-enable": true});
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
-
-          await TestManager.changeSomeOptions({
-            "backup-local-intervalTime": INTER / 2,
-          });
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(1);
-
-          jasmine.clock().tick(INTER_MS / 2);
-          await window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT_PROMISE;
-
-          expect(window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT).not.toBe(undefined);
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(2);
-
-          jasmine.clock().tick(INTER_MS / 2);
-          await window.Background.ExtensionStorageManager.Local.BACKUP_TIMEOUT_PROMISE;
-
-          expect(window.Background.ExtensionStorageManager.Local.addBackup).toHaveBeenCalledTimes(3);
-        } catch (e) {return} finally {
-          TestManager.uninstallFakeTime();
-        }
+        const changedAlarm = await getAlarm();
+        expect(changedAlarm).toBeDefined();
+        expect(changedAlarm.scheduledTime).not.toEqual(firstAlarm.scheduledTime);
       });
     });
 

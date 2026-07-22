@@ -26,7 +26,7 @@ async function undiscardAll(globalCount = 0, callbackAfterFirstUndiscard=undefin
             });
             //console.log("Update tab: " + tab.id);
             if (callbackAfterFirstUndiscard) { // For tests purpose
-              callbackAfterFirstUndiscard();
+              await callbackAfterFirstUndiscard();
               callbackAfterFirstUndiscard = undefined;
             }
             await Utils.wait(300);

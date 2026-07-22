@@ -95,7 +95,11 @@ async function removeTabsInWindow(windowId, {
     await browser.tabs.remove(tabsToRemove);
     await waitTabsToBeClosed(tabsToRemove);
 
-    return survivorTab;
+    // Chromium normalizes an empty new-tab URL to chrome://newtab/. Return the
+    // browser's final representation instead of the stale creation result.
+    return survivorTab === undefined
+      ? undefined
+      : await browser.tabs.get(survivorTab.id);
   } catch (e) {
     LogManager.error(e, {args: arguments});
   }

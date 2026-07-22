@@ -144,9 +144,6 @@ GroupManager.getGroupIdInWindow = function(windowId, {error = true}={}) {
   if (error) {
     throw Error(msg + " " + windowId);
   } else {
-    LogManager.warning(msg,
-      {args: arguments}
-    );
     return -1;
   }
 

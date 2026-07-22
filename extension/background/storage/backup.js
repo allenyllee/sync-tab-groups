@@ -13,28 +13,29 @@ BackupStorage.ALARM_PREFIX = "sync-tab-groups-download-backup-";
 BackupStorage.TIMERS = Utils.setObjectPropertiesWith(OPTION_CONSTANTS.TIMERS(), undefined);
 
 
-BackupStorage.init = function() {
+BackupStorage.init = async function() {
   if (!OptionManager.options.backup.download.enable) {
     return;
   }
 
   // Start enable timers
   BackupStorage.TIMERS = {};
+  const timers = [];
   for (let t in OptionManager.options.backup.download.time) {
     if (OptionManager.options.backup.download.time[t]) {
-      BackupStorage.startTimer(t);
+      timers.push(BackupStorage.startTimer(t));
     } else {
       BackupStorage.TIMERS[t] = undefined
     }
   }
+  await Promise.all(timers);
 }
 
 
 BackupStorage.stopAll = function() {
   // Stop all timers
-  for (let time in BackupStorage.TIMERS) {
-    BackupStorage.stopTimer(time);
-  }
+  return Promise.all(Object.keys(BackupStorage.TIMERS)
+    .map(time => BackupStorage.stopTimer(time)));
 }
 
 // Stop a specific timer

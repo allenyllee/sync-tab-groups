@@ -20,6 +20,25 @@ let specFilter = new jasmine.HtmlSpecFilter({
 
 let env = jasmine.getEnv();
 
+const specResults = [];
+window.__jasmineResult = null;
+env.addReporter({
+  specDone: function(result) {
+    specResults.push({
+      description: result.fullName,
+      failures: result.failedExpectations.map(failure => failure.message),
+      status: result.status,
+    });
+  },
+  jasmineDone: function(result) {
+    window.__jasmineResult = {
+      overallStatus: result.overallStatus
+        || (specResults.some(spec => spec.status === 'failed') ? 'failed' : 'passed'),
+      specs: specResults,
+    };
+  },
+});
+
 env.specFilter = function(spec) {
   return specFilter.matches(spec.getFullName());
 };

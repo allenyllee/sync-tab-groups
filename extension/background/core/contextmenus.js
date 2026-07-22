@@ -21,6 +21,37 @@ ContextMenu.repeatedtask = new TaskManager.RepeatedTask(1000);
 ContextMenu.occupied = false;
 ContextMenu.again = false;
 
+// webextension-polyfill cannot promisify contextMenus.create because Chrome
+// returns the menu id synchronously. Use the native callback on Chromium so
+// creation order is real and runtime.lastError is always consumed.
+ContextMenu.createMenu = function(properties) {
+  if (!Utils.isChrome()) {
+    return browser.contextMenus.create(properties);
+  }
+  return new Promise((resolve, reject) => {
+    globalThis.chrome.contextMenus.create(properties, () => {
+      const error = globalThis.chrome.runtime.lastError;
+      if (error) {
+        reject(Error(error.message));
+      } else {
+        resolve(properties.id);
+      }
+    });
+  });
+};
+
+ContextMenu.removeMenu = function(id) {
+  if (!Utils.isChrome()) {
+    return browser.contextMenus.remove(id).then(() => true, () => false);
+  }
+  return new Promise(resolve => {
+    globalThis.chrome.contextMenus.remove(id, () => {
+      const removed = globalThis.chrome.runtime.lastError == null;
+      resolve(removed);
+    });
+  });
+};
+
 ContextMenu.createMoveTabMenu = async function() {
   try {
     // Security for avoiding concurrency
@@ -30,13 +61,17 @@ ContextMenu.createMoveTabMenu = async function() {
     }
     ContextMenu.occupied = true;
 
-    for (let id of ContextMenu.MoveTabMenuIds) {
-      try {
-        await browser.contextMenus.remove(id);
-      } catch (e) {return}
+    // Remove children before their parent. Chromium removes a parent's children
+    // automatically, so removing the parent first leaves stale ids and aborts
+    // the rebuild when the children can no longer be found.
+    const menuIdsToRemove = ContextMenu.MoveTabMenuIds.slice().reverse();
+    ContextMenu.MoveTabMenuIds = [];
+    for (let id of menuIdsToRemove) {
+      // The browser may already have removed an item during a worker restart.
+      // Continue rebuilding from the authoritative group list.
+      await ContextMenu.removeMenu(id);
     }
     await Utils.wait(100)
-    ContextMenu.MoveTabMenuIds.length = 0;
 
     const contexts = ["page"];
     if (!Utils.isChrome()) { // Incompatible Chrome: "tab" in context menus
@@ -44,8 +79,6 @@ ContextMenu.createMoveTabMenu = async function() {
     }
 
     let parentId = ContextMenu.MoveTabMenu_ID + "title";
-    ContextMenu.MoveTabMenuIds.push(parentId);
-
     const contextManageGroups = {
       id: parentId,
       title: browser.i18n.getMessage("move_tab_group"),
@@ -57,7 +90,8 @@ ContextMenu.createMoveTabMenu = async function() {
         "32": "/share/icons/tabspace-active-32.png",
       };
     }
-    await browser.contextMenus.create(contextManageGroups);
+    await ContextMenu.createMenu(contextManageGroups);
+    ContextMenu.MoveTabMenuIds.push(parentId);
 
 
     let currentWindowId;
@@ -71,32 +105,35 @@ ContextMenu.createMoveTabMenu = async function() {
     let groups = GroupManager.getCopy();
     let sortedIndex = getGroupIndexSortedByPosition(groups);
     for (let i of sortedIndex) {
-      ContextMenu.MoveTabMenuIds.push(ContextMenu.MoveTabMenu_ID + groups[i].id);
+      const menuId = ContextMenu.MoveTabMenu_ID + groups[i].id;
       const openPrefix = groups[i].windowId !== browser.windows.WINDOW_ID_NONE ? "[OPEN]" : "";
-      await browser.contextMenus.create({
-        id: ContextMenu.MoveTabMenu_ID + groups[i].id,
+      await ContextMenu.createMenu({
+        id: menuId,
         title: openPrefix + " " + Utils.getGroupTitle(groups[i]),
         contexts: contexts,
         parentId: parentId,
         enabled: currentWindowId !== groups[i].windowId,
       });
+      ContextMenu.MoveTabMenuIds.push(menuId);
     }
 
-    ContextMenu.MoveTabMenuIds.push(ContextMenu.MoveTabMenu_ID + "separator-2");
-    await browser.contextMenus.create({
-      id: ContextMenu.MoveTabMenu_ID + "separator-2",
+    const separatorId = ContextMenu.MoveTabMenu_ID + "separator-2";
+    await ContextMenu.createMenu({
+      id: separatorId,
       type: "separator",
       contexts: contexts,
       parentId: parentId,
     });
+    ContextMenu.MoveTabMenuIds.push(separatorId);
 
-    ContextMenu.MoveTabMenuIds.push(ContextMenu.MoveTabMenu_ID + "new");
-    await browser.contextMenus.create({
-      id: ContextMenu.MoveTabMenu_ID + "new",
+    const newGroupId = ContextMenu.MoveTabMenu_ID + "new";
+    await ContextMenu.createMenu({
+      id: newGroupId,
       title: browser.i18n.getMessage("add_group"),
       contexts: contexts,
       parentId: parentId,
     });
+    ContextMenu.MoveTabMenuIds.push(newGroupId);
 
     if (ContextMenu.again) {
       setTimeout(() => {
@@ -144,7 +181,7 @@ ContextMenu.updateMoveFocus = async function(disabledId) {
   }
 }
 
-ContextMenu.createSpecialActionMenu = function() {
+ContextMenu.createSpecialActionMenu = async function() {
   let contextManageGroups = {
     id: ContextMenu.SpecialActionMenu_ID + "manage_groups",
     title: browser.i18n.getMessage("group_manager"),
@@ -157,7 +194,7 @@ ContextMenu.createSpecialActionMenu = function() {
       "32": "/share/icons/list-32.png",
     };
   }
-  browser.contextMenus.create(contextManageGroups);
+  await ContextMenu.createMenu(contextManageGroups);
 
   let contextExportGroups = {
     id: ContextMenu.SpecialActionMenu_ID + "export_groups",
@@ -170,7 +207,7 @@ ContextMenu.createSpecialActionMenu = function() {
       "32": "/share/icons/upload-32.png",
     };
   }
-  browser.contextMenus.create(contextExportGroups);
+  await ContextMenu.createMenu(contextExportGroups);
 
   let contextBackUp = {
     id: ContextMenu.SpecialActionMenu_ID + "backup",
@@ -183,7 +220,7 @@ ContextMenu.createSpecialActionMenu = function() {
       "32": "/share/icons/hdd-o-32.png",
     };
   }
-  browser.contextMenus.create(contextBackUp);
+  await ContextMenu.createMenu(contextBackUp);
   /* TODO: not working can't ask file, wait select group in popup window with filter
   browser.contextMenus.create({
     id: ContextMenu.SpecialActionMenu_ID + "import_groups",
@@ -218,7 +255,7 @@ ContextMenu.createSpecialActionMenu = function() {
       "32": "/share/icons/gear-32.png",
     };
   }
-  browser.contextMenus.create(contextOpenPreferences);
+  await ContextMenu.createMenu(contextOpenPreferences);
 
   /* TODO: Add Guide
   let contextGuide = {
@@ -240,7 +277,7 @@ ContextMenu.createSpecialActionMenu = function() {
       title: "Tests",
       contexts: ['action'],
     };
-    browser.contextMenus.create(contextTestPreferences);
+    await ContextMenu.createMenu(contextTestPreferences);
   }
 }
 
@@ -304,8 +341,8 @@ ContextMenu.initContextMenus = async function() {
   await browser.contextMenus.removeAll();
   ContextMenu.MoveTabMenuIds = [];
   ContextMenu.SpecialActionMenuIds = [];
-  ContextMenu.createMoveTabMenu();
-  ContextMenu.createSpecialActionMenu();
+  await ContextMenu.createMoveTabMenu();
+  await ContextMenu.createSpecialActionMenu();
 
   GroupManager.eventlistener.on(GroupManager.EVENT_CHANGE,
     () => {

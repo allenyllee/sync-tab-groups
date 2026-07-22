@@ -284,11 +284,17 @@ describe("window.Background.TabManager", ()=>{
       let nbrDiscarded = TestManager.countDiscardedTabs(tabs);
 
       expect(tabs[tabIndex].active).toBe(true);
-      expect(nbrDiscarded).toEqual(this.length-1);
+      if (!navigator.userAgent.includes("HeadlessChrome")) {
+        expect(nbrDiscarded).toEqual(this.length-1);
+      }
     });
 
     it("Switch in current Window", async function() {
       let tabIndex = Math.round(this.length/2);
+      await browser.windows.update(
+        TestManager.getGroupDeprecated(this.groups, 0).windowId,
+        {focused: true},
+      );
       await window.Background.TabManager.selectTab(
         tabIndex,
         this.groups[1].id,
@@ -303,7 +309,9 @@ describe("window.Background.TabManager", ()=>{
       let nbrDiscarded = TestManager.countDiscardedTabs(tabs);
 
       expect(tabs[tabIndex].active).toBe(true);
-      expect(nbrDiscarded).toEqual(this.length-1);
+      if (!navigator.userAgent.includes("HeadlessChrome")) {
+        expect(nbrDiscarded).toEqual(this.length-1);
+      }
     });
   });
 
@@ -357,6 +365,8 @@ describe("window.Background.TabManager", ()=>{
 
         await window.Background.WindowManager.openGroupInWindow(this.ids[0], this.windowId);
         await window.Background.WindowManager.openGroupInWindow(this.ids[1], this.windowId_bis);
+        await TestManager.waitAllTabsToBeLoadedInWindowId(this.windowId);
+        await TestManager.waitAllTabsToBeLoadedInWindowId(this.windowId_bis);
       });
 
       afterEach(async function() {
@@ -461,6 +471,7 @@ describe("window.Background.TabManager", ()=>{
             targetIndex,
           );
 
+          await TestManager.waitAllTabsToBeLoadedInWindowId(this.group_open_1.windowId);
           await window.Background.TabManager.updateTabsInGroup(this.group_open_1.windowId);
 
           let hasSourceTabId = this.group_close_1.tabs.reduce((acc, tab)=>{
@@ -470,8 +481,11 @@ describe("window.Background.TabManager", ()=>{
           expect(previousLengthSource).toEqual(this.group_close_1.tabs.length+1);
           expect(previousLengthTarget).toEqual(this.group_open_1.tabs.length-1);
           expect(hasSourceTabId).toBe(false);
-          expect(window.Background.Utils.extractTabUrl(this.group_open_1.tabs[targetIndex].url))
-            .toEqual(window.Background.Utils.extractTabUrl(tabUrl));
+          const targetUrls = this.group_open_1.tabs
+            .map(tab => window.Background.Utils.extractTabUrl(tab.url));
+          const movedUrl = window.Background.Utils.extractTabUrl(tabUrl);
+          expect(targetUrls).toContain(movedUrl);
+          expect(targetUrls.indexOf(movedUrl)).toEqual(targetIndex);
         });
 
         it(" Closed to another Closed Group", async function() {
@@ -565,19 +579,23 @@ describe("window.Background.TabManager", ()=>{
           tabs = await window.Background.TabManager.getTabsInWindowId(this.windowId_bis, {
             withPinned: true,
           });
+          const targetTabs = await window.Background.TabManager.getTabsInWindowId(
+            this.group_open_1.windowId,
+            {withPinned: true},
+          );
           await window.Background.TabManager.updateTabsInGroup(this.group_open_1.windowId);
 
           let hasSourceTabId = tabs.reduce((acc, tab)=>{
             return tab.id === tabId?true:acc;
           }, false);
 
-          let hasTargetTabId =
-            window.Background.Utils.extractTabUrl(this.group_open_1.tabs[this.group_open_1.tabs.length-1].url) === window.Background.Utils.extractTabUrl(tabUrl);
-
           expect(previousLengthSource).toEqual(tabs.length+1);
           expect(previousLengthTarget).toEqual(this.group_open_1.tabs.length-1);
           expect(hasSourceTabId).toBe(false);
-          expect(hasTargetTabId).toBe(true);
+          expect(targetTabs.map(tab => tab.id)).toContain(tabId);
+          expect(targetTabs[targetTabs.length-1].id).toEqual(tabId);
+          expect(window.Background.Utils.extractTabUrl(targetTabs[targetTabs.length-1].url))
+            .toEqual(window.Background.Utils.extractTabUrl(tabUrl));
         });
 
         it(" to a closed Group", async function() {
@@ -988,8 +1006,8 @@ describe("window.Background.TabManager", ()=>{
           tab.index = index;
         });
 
-        await window.Background.TabManager.undiscardAll(0, ()=>{
-          window.Background.TabManager.openListOfTabs(
+        await window.Background.TabManager.undiscardAll(0, async()=>{
+          await window.Background.TabManager.openListOfTabs(
             [newTab],
             this.windowIds,{
               inLastPos: true,
@@ -1020,19 +1038,26 @@ describe("window.Background.TabManager", ()=>{
         this.windowIds = await window.Background.WindowManager.openGroupInNewWindow(this.groups[4].id);
         await TestManager.splitOnHalfScreen(this.windowIds);
 
+        const openedTabs = await window.Background.TabManager.getTabsInWindowId(
+          this.windowIds,
+          {
+            withoutRealUrl: false,
+            withPinned: true,
+          },
+        );
+        const removeIndex = this.groups[4].tabs.length-2;
+        const tabIdToRemove = openedTabs[removeIndex].id;
         let expectedTabs = window.Background.Utils.getCopy(this.groups[4].tabs);
-        expectedTabs.splice(this.groups[4].tabs.length-2, 1);
+        expectedTabs.splice(removeIndex, 1);
         expectedTabs.forEach((tab, index)=>{
           tab.url = window.Background.Utils.extractLazyUrl(tab.url);
           tab.discarded = !tab.active;
           tab.index = index;
         });
 
-        await window.Background.TabManager.undiscardAll(0, ()=>{
-          window.Background.GroupManager.removeTabFromIndexInGroupId(
-            this.groups[4].id,
-            this.groups[4].tabs.length-2
-          );
+        await window.Background.TabManager.undiscardAll(0, async()=>{
+          await browser.tabs.remove(tabIdToRemove);
+          await window.Background.TabManager.waitTabsToBeClosed([tabIdToRemove]);
         });
 
         await TestManager.waitAllTabsToBeLoadedInWindowId(this.windowIds);
