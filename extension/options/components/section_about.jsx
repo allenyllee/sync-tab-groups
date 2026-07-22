@@ -45,6 +45,15 @@ class AboutSection extends React.Component {
           </a>
         </div>
         <h2>
+          Release Notes (0.9.2)
+        </h2>
+        <ul>
+          <li>Prevent duplicate context menu IDs from blocking startup</li>
+          <li>Retry transient storage, window, and menu initialization failures</li>
+          <li>Show the actual background initialization error in the popup</li>
+          <li>Test persisted menus and real-world group data across full Brave restarts</li>
+        </ul>
+        <h2>
           Release Notes (0.9.1)
         </h2>
         <ul>
