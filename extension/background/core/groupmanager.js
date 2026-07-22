@@ -938,24 +938,55 @@ GroupManager.init = async function() {
     let groups = await ExtensionStorageManager.Local.loadGroups();
     GroupManager.groups = GroupManager.check_integrity(groups);
 
-    const previously_open_group = []
-    for (let i=0; i<GroupManager.groups.length; i++) {
-      const group = GroupManager.groups[i]
-      if (group.windowId !== -1) {
-        previously_open_group.push(i)
-      }
-    }
+    const previouslyOpenGroupIds = GroupManager.groups
+      .filter(group => group.windowId !== browser.windows.WINDOW_ID_NONE)
+      .map(group => group.id);
+    const openWindows = await browser.windows.getAll();
+    const openWindowIds = new Set(openWindows.map(window => window.id));
 
-    GroupManager.resetAssociatedWindows({fireEvent: false});
+    // Window ids remain valid across MV3 service worker restarts. Preserve
+    // those associations so queued tab events keep updating their groups even
+    // if the browser.sessions value is temporarily unavailable.
+    for (const group of GroupManager.groups) {
+      if (group.windowId === browser.windows.WINDOW_ID_NONE) {
+        continue;
+      }
+      if (!openWindowIds.has(group.windowId)) {
+        group.windowId = browser.windows.WINDOW_ID_NONE;
+        continue;
+      }
+
+      let sessionGroupId;
+      if (Utils.hasSessionWindowValue()) {
+        try {
+          sessionGroupId = await browser.sessions.getWindowValue(
+            group.windowId,
+            WindowManager.WINDOW_GROUPID
+          );
+        } catch (error) {
+          LogManager.warning("Unable to verify the window session association", {
+            groupId: group.id,
+            windowId: group.windowId,
+            error,
+          });
+        }
+      }
+      if (sessionGroupId !== undefined && parseInt(sessionGroupId, 10) !== group.id) {
+        group.windowId = browser.windows.WINDOW_ID_NONE;
+        continue;
+      }
+
+      await GroupManager.attachWindowWithGroupId(group.id, group.windowId);
+    }
 
     // 2. Integrate open windows
     await GroupManager.integrateAllOpenedWindows();
 
     // Warning if still not open
-    for (let index of previously_open_group) {
-      const group = GroupManager.groups[index]
+    for (const groupId of previouslyOpenGroupIds) {
+      const group = GroupManager.getGroupFromGroupId(groupId, {error: false});
 
-      if (group.windowId === -1) {
+      if (group && group.windowId === browser.windows.WINDOW_ID_NONE) {
         browser.notifications.create(null, {
           "type": "basic",
           "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
@@ -966,11 +997,12 @@ GroupManager.init = async function() {
     }
 
     GroupManager.initGroupManagerEventListener();
-    GroupManager.eventlistener.fire(GroupManager.EVENT_PREPARE);
+    await GroupManager.eventlistener.fire(GroupManager.EVENT_PREPARE);
 
     return "GroupManager.init done";
   } catch (e) {
     LogManager.error(e, {args: arguments});
+    throw e;
   }
 }
 

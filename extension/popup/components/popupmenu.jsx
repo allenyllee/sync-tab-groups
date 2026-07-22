@@ -87,6 +87,7 @@ class PopupMenuStandAlone extends React.Component {
           onRemoveHiddenTab={this.props.onRemoveHiddenTab}
           /*** Data ***/
           groups= {this.props.groups}
+          groupsLoadState= {this.props.groupsLoadState}
           currentWindowId= {this.props.currentWindowId}
           delayedTasks= {this.props.delayedTasks}
           /*** Options ***/
@@ -174,6 +175,7 @@ const PopupMenu = (() =>{
   return ReactRedux.connect((state) => {
     return {
       groups: state.get("groups"),
+      groupsLoadState: state.get("groupsLoadState"),
       currentWindowId: state.get("currentWindowId"),
       delayedTasks: state.get("delayedTasks"),
       options: state.get("options"),

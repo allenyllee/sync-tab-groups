@@ -172,7 +172,7 @@ async function run() {
       prompt_for_download: false,
     },
   }));
-  const browser = spawn(brave, [
+  const browserArguments = [
     `--user-data-dir=${profile}`,
     `--disable-extensions-except=${extensionRoot}`,
     `--load-extension=${extensionRoot}`,
@@ -182,10 +182,17 @@ async function run() {
     '--no-first-run',
     '--no-default-browser-check',
     'about:blank',
-  ], {stdio: ['ignore', 'ignore', 'pipe']});
+  ];
 
   let browserErrors = '';
-  browser.stderr.on('data', chunk => browserErrors += chunk.toString());
+  const launchBrowser = () => {
+    const process = spawn(brave, browserArguments, {
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+    process.stderr.on('data', chunk => browserErrors += chunk.toString());
+    return process;
+  };
+  let browser = launchBrowser();
   let worker;
   let page;
   let optionsPage;
@@ -424,6 +431,25 @@ async function run() {
     assert.equal(storedBeforeRestart.movedGroup, true);
     assert.equal(storedBeforeRestart.theme, operationResult.expectedTheme);
 
+    const associationBeforeRestart = await worker.evaluate(`(async() => {
+      await BackgroundHelper.onGroupSelect({
+        groupId: ${JSON.stringify(operationResult.groupAId)},
+      });
+      await new Promise(resolve => setTimeout(resolve, 700));
+      await GroupManager.waitForStore();
+      const group = GroupManager.getGroupFromGroupId(
+        ${JSON.stringify(operationResult.groupAId)}
+      );
+      if (Utils.hasSessionWindowValue()) {
+        await browser.sessions.removeWindowValue(
+          group.windowId,
+          WindowManager.WINDOW_GROUPID,
+        );
+      }
+      return {windowId: group.windowId};
+    })()`);
+    assert.notEqual(associationBeforeRestart.windowId, -1);
+
     const backupDirectory = path.join(downloadDirectory, 'sync-tab-groups', 'backups');
     const backupResult = await worker.evaluate(`(async() => {
       const logIndex = LogManager.logs.length;
@@ -548,6 +574,9 @@ async function run() {
         movedGroup: GroupManager.groups.some(group =>
           group.id === ${JSON.stringify(operationResult.groupBId)}
           && group.tabs.some(tab => tab.url.includes(${JSON.stringify('shortcut-help.html?stg-regression=' + operationResult.suffix)}))),
+        associatedWindowId: GroupManager.getGroupFromGroupId(
+          ${JSON.stringify(operationResult.groupAId)}
+        ).windowId,
         theme: OptionManager.getOptionValue('popup-whiteTheme'),
         groups: GroupManager.groups.map(group => ({
           id: group.id,
@@ -563,10 +592,74 @@ async function run() {
     }
     assert.equal(persisted.renamedGroup, true);
     assert.equal(persisted.movedGroup, true);
+    assert.equal(persisted.associatedWindowId, associationBeforeRestart.windowId);
     assert.equal(persisted.theme, operationResult.expectedTheme);
-    console.log('PASS groups, moved tab, and options survive service worker reload');
+    const postRestartTabTracked = await worker.evaluate(`(async() => {
+      const suffix = ${JSON.stringify(operationResult.suffix)};
+      await browser.tabs.create({
+        windowId: ${JSON.stringify(associationBeforeRestart.windowId)},
+        url: browser.runtime.getURL('/tabpages/shortcut-help/shortcut-help.html')
+          + '?stg-post-restart=' + suffix,
+        active: false,
+      });
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await GroupManager.waitForStore();
+      return GroupManager.getGroupFromGroupId(
+        ${JSON.stringify(operationResult.groupAId)}
+      ).tabs.some(tab => tab.url.includes('shortcut-help.html?stg-post-restart=' + suffix));
+    })()`);
+    assert.equal(postRestartTabTracked, true);
+    console.log('PASS window association and tab tracking survive service worker reload');
 
-    console.log('Brave MV3 regression: 12 checks passed');
+    page.close();
+    page = null;
+    optionsPage.close();
+    optionsPage = null;
+    controlPage.close();
+    controlPage = null;
+    worker.close();
+    worker = null;
+    await browserClient.send('Browser.close');
+    browserClient.close();
+    browserClient = null;
+    await waitFor(() => browser.exitCode !== null, 'Brave process shutdown');
+
+    browser = launchBrowser();
+    const relaunchedVersion = await waitFor(
+      () => getJson(`http://127.0.0.1:${port}/json/version`),
+      'relaunched Brave DevTools endpoint',
+    );
+    browserClient = await new CdpClient(
+      relaunchedVersion.webSocketDebuggerUrl,
+    ).connect();
+    const relaunchedWorkerTarget = await waitFor(async() => {
+      const targets = await getJson(`http://127.0.0.1:${port}/json/list`);
+      return targets.find(target => target.type === 'service_worker'
+        && target.url === firstWorkerTarget.url);
+    }, 'extension service worker after full browser restart');
+    worker = await new CdpClient(
+      relaunchedWorkerTarget.webSocketDebuggerUrl,
+    ).connect();
+    await worker.send('Runtime.enable');
+    const afterBrowserRestart = await waitFor(() => worker.evaluate(`(() => {
+      if (!globalThis.GroupManager || !globalThis.BackgroundHelper
+          || BackgroundHelper.initialized !== true) return null;
+      return {
+        renamedGroup: GroupManager.groups.some(group =>
+          group.id === ${JSON.stringify(operationResult.groupAId)}
+          && group.title === ${JSON.stringify('Regression A renamed ' + operationResult.suffix)}),
+        movedGroup: GroupManager.groups.some(group =>
+          group.id === ${JSON.stringify(operationResult.groupBId)}
+          && group.tabs.some(tab => tab.url.includes(${JSON.stringify('shortcut-help.html?stg-regression=' + operationResult.suffix)}))),
+        groupCount: GroupManager.groups.length,
+      };
+    })()`), 'state restored after full browser restart');
+    assert.equal(afterBrowserRestart.renamedGroup, true);
+    assert.equal(afterBrowserRestart.movedGroup, true);
+    assert.ok(afterBrowserRestart.groupCount >= 2);
+    console.log('PASS groups survive full Brave shutdown and relaunch');
+
+    console.log('Brave MV3 regression: 14 checks passed');
   } finally {
     if (page) page.close();
     if (optionsPage) optionsPage.close();

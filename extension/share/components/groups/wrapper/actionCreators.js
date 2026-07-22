@@ -6,6 +6,13 @@ const ActionCreators = {
     };
   },
 
+  setGroupsLoadState: function(groupsLoadState) {
+    return {
+      type: "GROUPS_LOAD_STATE_RECEIVE",
+      groupsLoadState: groupsLoadState,
+    };
+  },
+
   setCurrentWindowId: function(currentWindowId) {
     return {
       type: "CURRENT_WINDOWS_ID_RECEIVE",

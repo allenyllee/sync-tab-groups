@@ -78,7 +78,19 @@ class GroupList extends React.Component {
     });
 
     let groups;
-    if (this.props.groups.length > 0) {
+    if (this.props.groupsLoadState === "loading") {
+      groups = (
+        <div className="empty-list">
+          Loading groups...
+        </div>
+      );
+    } else if (this.props.groupsLoadState === "error") {
+      groups = (
+        <div className="empty-list">
+          Failed to load groups. Reload the extension and check its errors.
+        </div>
+      );
+    } else if (this.props.groups.length > 0) {
       groups = [];
       if (!this.state.atLeastOneResult) {
         groups.push(
@@ -252,6 +264,7 @@ class GroupList extends React.Component {
 
 GroupList.propTypes = {
   groups: PropTypes.array.isRequired,
+  groupsLoadState: PropTypes.string,
   currentWindowId: PropTypes.number,
   delayedTasks: PropTypes.object,
   onGroupAddClick: PropTypes.func,

@@ -4,6 +4,7 @@ import OPTION_CONSTANTS from '../../../../background/core/OPTION_CONSTANTS'
 
 const INITIAL_STATE = Immutable.Map({
   groups: [],
+  groupsLoadState: "loading",
   delayedTasks: {},
   currentWindowId: browser.windows.WINDOW_ID_NONE,
   options: OPTION_CONSTANTS.TEMPLATE(),
@@ -12,7 +13,11 @@ const INITIAL_STATE = Immutable.Map({
 const Reducer = function(state = INITIAL_STATE, action) {
   switch (action.type) {
   case "GROUPS_RECEIVE":
-    return state.set("groups", action.groups);
+    return state
+      .set("groups", action.groups)
+      .set("groupsLoadState", "loaded");
+  case "GROUPS_LOAD_STATE_RECEIVE":
+    return state.set("groupsLoadState", action.groupsLoadState);
   case "CURRENT_WINDOWS_ID_RECEIVE":
     return state.set("currentWindowId", action.currentWindowId);
   case "DELAYED_TASKS_RECEIVE":

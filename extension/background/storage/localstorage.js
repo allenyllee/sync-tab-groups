@@ -35,10 +35,14 @@ LocalStorage.saveGroups = async function(groups) {
 LocalStorage.loadGroups = async function() {
   try {
     const {groups} = await browser.storage.local.get({"groups": []})
+    if (!Array.isArray(groups)) {
+      throw new TypeError("The saved groups value is not an array");
+    }
     if (groups.length === 0) LogManager.information(`LocalStorage.loadGroups loaded empty group.`)
     return groups;
   } catch (e) {
-    return "LocalStorage.loadGroups failed... " + e;
+    LogManager.error(e);
+    throw e;
   }
 }
 

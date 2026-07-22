@@ -76,10 +76,14 @@ const GroupActions = {
   },
 
   askData: function() {
-    Utils.sendMessage("Data:Ask", window.location != null
-      ? {all_tabs: window.location.search.includes("all_tabs")}
-      : {}
-    );
+    browser.runtime.sendMessage({
+      task: "Data:Ask",
+      params: window.location != null
+        ? {all_tabs: window.location.search.includes("all_tabs")}
+        : {},
+    }).catch(() => {
+      store.dispatch(ActionCreators.setGroupsLoadState("error"));
+    });
   },
 
   openSettings: function() {
@@ -177,6 +181,7 @@ browser.runtime.onMessage.addListener(popupMessenger);
  * Access to the groups and show them
  */
 function init() {
+  store.dispatch(ActionCreators.setGroupsLoadState("loading"));
   GroupActions.askData();
   browser.windows.getLastFocused().then((w) => {
     store.dispatch(ActionCreators.setCurrentWindowId(w.id));
