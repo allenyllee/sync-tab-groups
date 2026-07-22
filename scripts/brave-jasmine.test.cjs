@@ -40,6 +40,7 @@ async function run() {
     `--remote-debugging-port=${port}`,
     '--remote-allow-origins=*',
     '--headless=new',
+    '--disable-notifications',
     '--no-first-run',
     '--no-default-browser-check',
     'about:blank',
