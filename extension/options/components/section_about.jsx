@@ -45,6 +45,12 @@ class AboutSection extends React.Component {
           </a>
         </div>
         <h2>
+          Release Notes (0.9.4)
+        </h2>
+        <ul>
+          <li>Disable misleading desktop notifications during Jasmine browser tests</li>
+        </ul>
+        <h2>
           Release Notes (0.9.3)
         </h2>
         <ul>
