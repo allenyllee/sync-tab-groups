@@ -161,6 +161,10 @@ async function run() {
   const brave = findBrave();
   assert.ok(brave, 'Brave was not found; set BRAVE_BINARY to brave.exe');
 
+  const groupsFixture = process.env.STG_GROUPS_FIXTURE
+    ? JSON.parse(fs.readFileSync(process.env.STG_GROUPS_FIXTURE, 'utf8')).groups
+    : null;
+
   const port = await getFreePort();
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'stg-brave-test-'));
   const downloadDirectory = path.join(profile, 'downloads');
@@ -244,6 +248,16 @@ async function run() {
     }
     console.log('PASS service worker starts and initializes');
 
+    if (groupsFixture) {
+      await worker.evaluate(`(async() => {
+        const groups = ${JSON.stringify(groupsFixture)};
+        GroupManager.groups = GroupManager.check_integrity(groups);
+        await browser.storage.local.set({groups});
+        return GroupManager.groups.length;
+      })()`);
+      console.log(`Loaded ${groupsFixture.length} groups from restart fixture`);
+    }
+
     const created = await browserClient.send('Target.createTarget', {
       url: `chrome-extension://${extensionId}/popup/popup.html`,
     });
@@ -266,6 +280,9 @@ async function run() {
     assert.ok(popupResult.contentChildren > 0, 'popup did not render');
     assert.match(popupResult.fontFamily, /FontAwesome/i);
     console.log('PASS popup renders with Font Awesome icons');
+
+    await worker.evaluate(`ContextMenu.rebuildContextMenus()`);
+    console.log('PASS context menus rebuild when persisted menu ids already exist');
 
     const optionsCreated = await browserClient.send('Target.createTarget', {
       url: `chrome-extension://${extensionId}/options/option-page.html`,
@@ -659,7 +676,7 @@ async function run() {
     assert.ok(afterBrowserRestart.groupCount >= 2);
     console.log('PASS groups survive full Brave shutdown and relaunch');
 
-    console.log('Brave MV3 regression: 14 checks passed');
+    console.log('Brave MV3 regression: 15 checks passed');
   } finally {
     if (page) page.close();
     if (optionsPage) optionsPage.close();

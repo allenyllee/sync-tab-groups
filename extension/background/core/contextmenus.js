@@ -10,6 +10,7 @@ import ExtensionStorageManager from '../storage/storageManager'
 import Lifecycle from '../lifecycle'
 
 const ContextMenu = {};
+globalThis.ContextMenu = ContextMenu;
 
 ContextMenu.MoveTabMenu_ID = "stg-move-tab-group-";
 ContextMenu.SpecialActionMenu_ID = "stg-special-actions-";
@@ -52,7 +53,23 @@ ContextMenu.removeMenu = function(id) {
   });
 };
 
-ContextMenu.createMoveTabMenu = async function() {
+ContextMenu.removeAllMenus = function() {
+  if (!Utils.isChrome()) {
+    return browser.contextMenus.removeAll();
+  }
+  return new Promise((resolve, reject) => {
+    globalThis.chrome.contextMenus.removeAll(() => {
+      const error = globalThis.chrome.runtime.lastError;
+      if (error) {
+        reject(Error(error.message));
+      } else {
+        resolve();
+      }
+    });
+  });
+};
+
+ContextMenu.createMoveTabMenu = async function({throwOnError=false}={}) {
   try {
     // Security for avoiding concurrency
     if (ContextMenu.occupied) {
@@ -142,6 +159,9 @@ ContextMenu.createMoveTabMenu = async function() {
       ContextMenu.again = false;
     }
   } catch (e) {
+    if (throwOnError) {
+      throw e;
+    }
     LogManager.error(e);
   } finally {
     ContextMenu.occupied = false;
@@ -337,12 +357,35 @@ ContextMenu.registerEventListeners = function() {
   browser.contextMenus.onClicked.addListener(ContextMenu.MoveTabMenuListener);
 };
 
+ContextMenu.rebuildContextMenus = async function() {
+  let initialized = false;
+  let lastError;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      // Chromium keeps context menus across MV3 worker restarts. Its Promise
+      // wrapper can resolve before removal has completed during browser
+      // startup, so use the native callback and retry the whole rebuild.
+      await ContextMenu.removeAllMenus();
+      ContextMenu.MoveTabMenuIds = [];
+      ContextMenu.SpecialActionMenuIds = [];
+      await ContextMenu.createMoveTabMenu({throwOnError: true});
+      await ContextMenu.createSpecialActionMenu();
+      initialized = true;
+      break;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        await Utils.wait(attempt * 250);
+      }
+    }
+  }
+  if (!initialized) {
+    throw lastError;
+  }
+};
+
 ContextMenu.initContextMenus = async function() {
-  await browser.contextMenus.removeAll();
-  ContextMenu.MoveTabMenuIds = [];
-  ContextMenu.SpecialActionMenuIds = [];
-  await ContextMenu.createMoveTabMenu();
-  await ContextMenu.createSpecialActionMenu();
+  await ContextMenu.rebuildContextMenus();
 
   GroupManager.eventlistener.on(GroupManager.EVENT_CHANGE,
     () => {

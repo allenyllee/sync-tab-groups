@@ -3,6 +3,7 @@ import GroupManager from '../core/groupmanager'
 import OptionManager from '../core/optionmanager'
 import LogManager from '../error/logmanager'
 import OPTION_CONSTANTS from '../core/OPTION_CONSTANTS'
+import Utils from '../utils/utils'
 
 const LocalStorage = {};
 LocalStorage.BACKUP_TIMEOUT = null;
@@ -32,18 +33,26 @@ LocalStorage.saveGroups = async function(groups) {
  * If no groups array was saved, return an empty array
  * @returns {Array<Group>} groups
  */
-LocalStorage.loadGroups = async function() {
-  try {
-    const {groups} = await browser.storage.local.get({"groups": []})
-    if (!Array.isArray(groups)) {
-      throw new TypeError("The saved groups value is not an array");
+LocalStorage.loadGroups = async function({attempts=3}={}) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      const {groups} = await browser.storage.local.get({"groups": []})
+      if (!Array.isArray(groups)) {
+        throw new TypeError("The saved groups value is not an array");
+      }
+      if (groups.length === 0) LogManager.information(`LocalStorage.loadGroups loaded empty group.`)
+      return groups;
+    } catch (e) {
+      lastError = e;
+      if (e instanceof TypeError || attempt === attempts) {
+        break;
+      }
+      await Utils.wait(attempt * 250);
     }
-    if (groups.length === 0) LogManager.information(`LocalStorage.loadGroups loaded empty group.`)
-    return groups;
-  } catch (e) {
-    LogManager.error(e);
-    throw e;
   }
+  LogManager.error(lastError);
+  throw lastError;
 }
 
 /**

@@ -88,6 +88,7 @@ class PopupMenuStandAlone extends React.Component {
           /*** Data ***/
           groups= {this.props.groups}
           groupsLoadState= {this.props.groupsLoadState}
+          groupsLoadError= {this.props.groupsLoadError}
           currentWindowId= {this.props.currentWindowId}
           delayedTasks= {this.props.delayedTasks}
           /*** Options ***/
@@ -176,6 +177,7 @@ const PopupMenu = (() =>{
     return {
       groups: state.get("groups"),
       groupsLoadState: state.get("groupsLoadState"),
+      groupsLoadError: state.get("groupsLoadError"),
       currentWindowId: state.get("currentWindowId"),
       delayedTasks: state.get("delayedTasks"),
       options: state.get("options"),

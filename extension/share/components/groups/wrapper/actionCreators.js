@@ -6,10 +6,11 @@ const ActionCreators = {
     };
   },
 
-  setGroupsLoadState: function(groupsLoadState) {
+  setGroupsLoadState: function(groupsLoadState, groupsLoadError="") {
     return {
       type: "GROUPS_LOAD_STATE_RECEIVE",
       groupsLoadState: groupsLoadState,
+      groupsLoadError: groupsLoadError,
     };
   },
 

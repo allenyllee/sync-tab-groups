@@ -941,7 +941,22 @@ GroupManager.init = async function() {
     const previouslyOpenGroupIds = GroupManager.groups
       .filter(group => group.windowId !== browser.windows.WINDOW_ID_NONE)
       .map(group => group.id);
-    const openWindows = await browser.windows.getAll();
+    let openWindows;
+    let windowsError;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        openWindows = await browser.windows.getAll();
+        break;
+      } catch (error) {
+        windowsError = error;
+        if (attempt < 3) {
+          await Utils.wait(attempt * 250);
+        }
+      }
+    }
+    if (!openWindows) {
+      throw windowsError;
+    }
     const openWindowIds = new Set(openWindows.map(window => window.id));
 
     // Window ids remain valid across MV3 service worker restarts. Preserve

@@ -81,8 +81,11 @@ const GroupActions = {
       params: window.location != null
         ? {all_tabs: window.location.search.includes("all_tabs")}
         : {},
-    }).catch(() => {
-      store.dispatch(ActionCreators.setGroupsLoadState("error"));
+    }).catch(error => {
+      store.dispatch(ActionCreators.setGroupsLoadState(
+        "error",
+        error && error.message ? error.message : String(error)
+      ));
     });
   },
 

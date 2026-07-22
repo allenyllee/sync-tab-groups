@@ -87,7 +87,8 @@ class GroupList extends React.Component {
     } else if (this.props.groupsLoadState === "error") {
       groups = (
         <div className="empty-list">
-          Failed to load groups. Reload the extension and check its errors.
+          Failed to initialize: {this.props.groupsLoadError
+            || "Unknown background error"}
         </div>
       );
     } else if (this.props.groups.length > 0) {
@@ -265,6 +266,7 @@ class GroupList extends React.Component {
 GroupList.propTypes = {
   groups: PropTypes.array.isRequired,
   groupsLoadState: PropTypes.string,
+  groupsLoadError: PropTypes.string,
   currentWindowId: PropTypes.number,
   delayedTasks: PropTypes.object,
   onGroupAddClick: PropTypes.func,
