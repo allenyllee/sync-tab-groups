@@ -45,6 +45,15 @@ class AboutSection extends React.Component {
           </a>
         </div>
         <h2>
+          Release Notes (0.9.1)
+        </h2>
+        <ul>
+          <li>Preserve group and window associations across service worker and browser restarts</li>
+          <li>Distinguish loading failures from an empty group list</li>
+          <li>Make automatic download backup scheduling reliable</li>
+          <li>Organize timestamped backups and exports under the sync-tab-groups folder</li>
+        </ul>
+        <h2>
           Release Notes (0.9.0)
         </h2>
         <ul>
