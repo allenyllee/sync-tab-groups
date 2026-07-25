@@ -83,6 +83,10 @@ project is active and where to request support.
 See the maintainer discussion in
 [issue #1](https://github.com/allenyllee/sync-tab-groups/issues/1).
 
+The original extension's former Chrome Web Store listing is preserved as a
+historical reference:
+[Sync Tab Groups on the Chrome Web Store](https://chromewebstore.google.com/detail/sync-tab-groups/gbkddinkjahdfhaiifploahejhmaaeoa).
+
 Tab Groups Resurrection preserves the original license, copyright notices, and
 project attribution. It is a community-maintained fork and is not maintained or
 endorsed by Morikko.
