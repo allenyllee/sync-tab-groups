@@ -15,6 +15,13 @@ const {
 
 const extensionRoot = path.resolve(__dirname, '../build/chrome');
 const screenshotRoot = path.resolve(__dirname, '../store-assets/screenshots');
+const locale = process.argv[2] || 'en-US';
+const localeSuffix = {
+  'en-US': 'en',
+  'zh-TW': 'zh-TW',
+}[locale];
+
+assert.ok(localeSuffix, `Unsupported screenshot locale: ${locale}`);
 
 function getBrowserPath(filePath) {
   if (process.platform !== 'linux'
@@ -77,7 +84,8 @@ async function run() {
     '--remote-allow-origins=*',
     '--headless=new',
     '--disable-notifications',
-    '--lang=en-US',
+    `--lang=${locale}`,
+    `--accept-lang=${locale}`,
     '--no-first-run',
     '--no-default-browser-check',
     '--window-size=1280,800',
@@ -108,7 +116,7 @@ async function run() {
       && BackgroundHelper.initialized === true
     )`), 'background initialization');
 
-    const groups = [
+    const englishGroups = [
       {
         id: 101,
         title: 'Research & Reading',
@@ -138,6 +146,39 @@ async function run() {
         ],
       },
     ];
+    const traditionalChineseGroups = [
+      {
+        id: 101,
+        title: '研究與閱讀',
+        tabs: [
+          {title: 'MDN Web 文件', url: 'https://developer.mozilla.org/', pinned: true},
+          {title: 'Chrome 擴充功能文件', url: 'https://developer.chrome.com/docs/extensions/'},
+          {title: '待讀研究論文', url: 'https://arxiv.org/'},
+        ],
+      },
+      {
+        id: 102,
+        title: '工作專案',
+        tabs: [
+          {title: 'GitHub Pull Requests', url: 'https://github.com/pulls', pinned: true},
+          {title: '專案路線圖', url: 'https://github.com/'},
+          {title: '設計筆記', url: 'https://docs.google.com/'},
+          {title: '問題追蹤', url: 'https://github.com/issues'},
+        ],
+      },
+      {
+        id: 103,
+        title: '個人',
+        tabs: [
+          {title: '旅遊規劃', url: 'https://www.google.com/travel/'},
+          {title: '食譜', url: 'https://www.allrecipes.com/'},
+          {title: '音樂播放清單', url: 'https://music.youtube.com/'},
+        ],
+      },
+    ];
+    const groups = locale === 'zh-TW'
+      ? traditionalChineseGroups
+      : englishGroups;
 
     await worker.evaluate(`(async() => {
       const groups = ${JSON.stringify(groups)};
@@ -163,7 +204,10 @@ async function run() {
     await waitFor(() => manager.evaluate(
       `document.querySelectorAll('.tab').length >= 10`,
     ), 'expanded group tabs');
-    await capture(manager, '01-group-manager-en-1280x800.png');
+    await capture(
+      manager,
+      `01-group-manager-${localeSuffix}-1280x800.png`,
+    );
 
     const options = await connectTarget(
       browserClient,
@@ -174,9 +218,12 @@ async function run() {
     await waitFor(() => options.evaluate(
       `Boolean(document.querySelector('#backup-local-intervalTime'))`,
     ), 'rendered backup preferences');
-    await capture(options, '02-local-backups-en-1280x800.png');
+    await capture(
+      options,
+      `02-local-backups-${localeSuffix}-1280x800.png`,
+    );
 
-    console.log(`Captured store screenshots in ${screenshotRoot}`);
+    console.log(`Captured ${locale} store screenshots in ${screenshotRoot}`);
   } finally {
     for (const page of pages) page.close();
     if (worker) worker.close();

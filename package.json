@@ -15,7 +15,7 @@
     "test:regression": "npm test && npm run test:jasmine:unit && npm run test:jasmine:integration && npm run test:brave",
     "test:release": "node --test scripts/release-package.test.cjs",
     "icons:build": "node scripts/build-extension-icons.cjs",
-    "store:capture": "npm run build:chrome && node scripts/capture-store-assets.cjs",
+    "store:capture": "npm run build:chrome && node scripts/capture-store-assets.cjs en-US && node scripts/capture-store-assets.cjs zh-TW",
     "build": "rimraf build && npm run build:firefox && npm run build:chrome",
     "build:firefox": "webpack --mode development --env browser=firefox --progress",
     "build:chrome": "webpack --mode development --env browser=chrome --progress",
