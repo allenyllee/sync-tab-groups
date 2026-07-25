@@ -1,5 +1,14 @@
 # Tab Groups Resurrection
 
+<p align="center">
+  <img
+    src="extension/share/icons/tab-groups-resurrection-128.png"
+    width="128"
+    height="128"
+    alt="Tab Groups Resurrection icon"
+  >
+</p>
+
 Tab Groups Resurrection is an independently maintained, Chromium-focused fork
 of [Sync Tab Groups](https://github.com/Morikko/sync-tab-groups), originally
 created by [Morikko](https://github.com/Morikko).
@@ -8,6 +17,23 @@ It keeps the original workflow of organizing tabs by topic, switching between
 groups, and keeping pinned tabs inside their groups. Groups can be closed and
 reopened without losing their tabs, and can be searched, moved, exported, and
 backed up.
+
+## Screenshots
+
+### Search and manage groups
+
+See saved groups and their tabs in one searchable view. Expand or collapse
+groups, identify pinned tabs, and create or reorganize groups from the full-page
+manager.
+
+![Group manager showing saved groups and pinned tabs](store-assets/screenshots/01-group-manager-en-1280x800.png)
+
+### Import, export, and local backups
+
+Import or export group data and configure automatic local backups, including
+the backup interval and maximum number of saved backups.
+
+![Settings for group import, export, and local backups](store-assets/screenshots/02-local-backups-en-1280x800.png)
 
 ## Current status
 
