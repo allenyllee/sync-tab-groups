@@ -12,6 +12,12 @@ This directory contains the text and image assets for the independent
 - `screenshots/`: 1280x800 screenshots of the actual extension
 - `source/`: editable or full-resolution source artwork
 
+All production icon sizes are generated from
+`source/tab-groups-resurrection.svg` with `npm run icons:build`. Its
+circle-free, asymmetric four-block design is based on the visual language of
+the original Sync Tab Groups icon and remains legible in Chromium's small
+toolbar slot.
+
 Required final image files:
 
 - `tab-groups-resurrection-store-icon-128.png`

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="128" height="128" viewBox="0 0 128 128">
+  <title>Tab Groups Resurrection icon</title>
+
+  <defs>
+    <linearGradient id="active" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#55e5d9"/>
+      <stop offset="1" stop-color="#0cafaa"/>
+    </linearGradient>
+    <linearGradient id="inactive" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8993ff"/>
+      <stop offset="1" stop-color="#4b58cf"/>
+    </linearGradient>
+  </defs>
+
+  <!--
+    The asymmetric four-block layout echoes the original Sync Tab Groups
+    icon. Large, unoutlined shapes remain clear in Chromium's 16px slot.
+  -->
+  <rect x="4" y="4" width="78" height="45" rx="11"
+        fill="url(#active)"/>
+  <rect x="91" y="4" width="33" height="45" rx="11"
+        fill="url(#inactive)"/>
+  <rect x="4" y="68" width="33" height="56" rx="11"
+        fill="url(#inactive)"/>
+  <rect x="46" y="68" width="78" height="56" rx="11"
+        fill="url(#inactive)"/>
+</svg>

@@ -1,7 +1,14 @@
 # Icon generation prompt
 
-The master icon artwork was generated with the built-in OpenAI image generation
-tool and then converted from a flat chroma-key background to transparent PNG.
+The former circular-arrow icon concept was generated with the built-in OpenAI
+image generation tool and converted from a flat chroma-key background to a
+transparent PNG. It is retained here as design history, but is no longer used
+for production assets.
+
+The current production icon is the deterministic
+`tab-groups-resurrection.svg`. It uses four large, asymmetric tab-group blocks
+without an outline or surrounding circle. `npm run icons:build` renders that
+single source at every extension and Chrome Web Store icon size.
 
 ## Prompt
 
