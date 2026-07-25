@@ -62,7 +62,7 @@ FileStorage.importGroupsFromFile = function(content_file) {
   } catch (e) {
     browser.notifications.create({
       "type": "basic",
-      "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
+      "iconUrl": browser.runtime.getURL("/share/icons/tab-groups-resurrection-64.png"),
       "title": "Impossible to read the file",
       "message": e.message,
       "eventTime": 4000,

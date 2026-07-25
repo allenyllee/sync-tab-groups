@@ -68,7 +68,7 @@ class TabControls extends React.Component {
       key: "move_tab",
       action: "move",
       close: false,
-      icon: <img src="/share/icons/tabspace-active-32.png" />,
+      icon: <img src="/share/icons/tab-groups-resurrection-32.png" />,
       message: browser.i18n.getMessage("move_tab_group"),
     })
   }

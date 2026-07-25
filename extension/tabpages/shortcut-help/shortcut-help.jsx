@@ -5,9 +5,9 @@ import Utils from '../../background/utils/utils'
 
 document.addEventListener("DOMContentLoaded", async() => {
 
-  document.title = "Shortcuts List for Sync Tab Groups";
+  document.title = "Shortcuts List for Tab Groups Resurrection";
   // Set tab icon
-  Utils.setIcon("../../share/icons/tabspace-active-64.png");
+  Utils.setIcon("../../share/icons/tab-groups-resurrection-64.png");
 
   let list_commands = await browser.commands.getAll();
 
@@ -15,12 +15,12 @@ document.addEventListener("DOMContentLoaded", async() => {
     (<div>
       <div className="title">
         <img
-          src="../../share/icons/tabspace-active-64.png"
-          alt="Sync Tab Groups icon"
+          src="../../share/icons/tab-groups-resurrection-64.png"
+          alt="Tab Groups Resurrection icon"
           width="64"
           height="64"
         />
-        Sync Tab Groups
+        Tab Groups Resurrection
       </div>
       <div className="help">
         <h1 className="shortcut-list">

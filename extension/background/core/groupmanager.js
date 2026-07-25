@@ -814,7 +814,7 @@ GroupManager.addGroups = function(newGroups, {
   if (showNotification) {
     browser.notifications.create({
       "type": "basic",
-      "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
+      "iconUrl": browser.runtime.getURL("/share/icons/tab-groups-resurrection-64.png"),
       "title": "Import Groups succeeded",
       "message": newGroups.length + " groups imported.",
       "eventTime": 4000,
@@ -1004,7 +1004,7 @@ GroupManager.init = async function() {
       if (group && group.windowId === browser.windows.WINDOW_ID_NONE) {
         browser.notifications.create(null, {
           "type": "basic",
-          "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
+          "iconUrl": browser.runtime.getURL("/share/icons/tab-groups-resurrection-64.png"),
           "title": "Fail to find the window",
           "message": `For the group previously opened named "${Utils.getGroupTitle(group)}".You might check your groups to avoid data loss.`,
         });
@@ -1257,7 +1257,7 @@ GroupManager.checkCorruptedGroups = function(groups=GroupManager.groups, {
 
   if (areGroupsCorrupted) {
     LogManager.error(
-      `Sync Tab Groups has detected a corruption in your groups: ${corruptedMessage}`
+      `Tab Groups Resurrection detected a corruption in your groups: ${corruptedMessage}`
     );
     // Don't fix data in debug mode for allowing to analyze
     if (!Utils.DEBUG_MODE && shouldBefixed) {
@@ -1266,7 +1266,7 @@ GroupManager.checkCorruptedGroups = function(groups=GroupManager.groups, {
     }
   } else if (corruptedMessage.length > 0) {
     LogManager.information(
-      `Sync Tab Groups has detected a corruption in your groups and fixed it: ${corruptedMessage}`
+      `Tab Groups Resurrection detected a corruption in your groups and fixed it: ${corruptedMessage}`
     );
   }
   return withMessage

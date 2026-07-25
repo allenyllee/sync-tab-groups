@@ -10,40 +10,36 @@ class AboutSection extends React.Component {
           {browser.i18n.getMessage("options_about")}
         </h1>
         <h2>
-          Sync Tab Groups
+          Tab Groups Resurrection
         </h2>
-        <div className="row-about">
-          <div>
-            <h3>{browser.i18n.getMessage("options_about_start_title")}</h3>
-            <p>{browser.i18n.getMessage("options_about_start")}</p>
-          </div>
-          <div>
-            <h3>{browser.i18n.getMessage("options_about_enjoy_title")}</h3>
-            <p>{browser.i18n.getMessage("options_about_enjoy")}</p>
-          </div>
-          <div>
-            <h3>{browser.i18n.getMessage("options_about_contribute_title")}</h3>
-            <p>{browser.i18n.getMessage("options_about_contribute")}</p>
-          </div>
-          <div>
-            <h3>{browser.i18n.getMessage("options_about_dev_title")}</h3>
-            <p>{browser.i18n.getMessage("options_about_dev")}</p>
-          </div>
-        </div>
+        <p>
+          An independently maintained Chromium MV3 fork of Sync Tab Groups.
+          The original project was created by Eric Masseran (Morikko).
+        </p>
         <div className="row-about-center">
-          <a href="https://chrome.google.com/webstore/detail/sync-tab-groups/gbkddinkjahdfhaiifploahejhmaaeoa"
-            title="Chrome Add-On page">
-            <img src="/share/icons/chrome.png" alt=""/>
-          </a>
-          <a href="https://morikko.github.io/synctabgroups"
-            title="Sync Tab Groups website">
-            <img src="/share/icons/sync-tab-groups.png" alt="extension icon"/>
-          </a>
-          <a href="https://addons.mozilla.org/en-US/firefox/addon/sync-tab-groups/"
-            title="Firefox Add-On page">
-            <img src="/share/icons/firefox.png" alt=""/>
+          <a href="https://github.com/allenyllee/sync-tab-groups"
+            title="Tab Groups Resurrection source and documentation">
+            <img src="/share/icons/tab-groups-resurrection-128.png"
+              alt="Tab Groups Resurrection icon"/>
           </a>
         </div>
+        <p>
+          <a href="https://github.com/allenyllee/sync-tab-groups/issues">
+            Report a bug
+          </a>
+          {" · "}
+          <a href="https://github.com/allenyllee/sync-tab-groups/blob/master/PRIVACY.md">
+            Privacy policy
+          </a>
+        </p>
+        <h2>
+          Release Notes (1.0.0)
+        </h2>
+        <ul>
+          <li>Rename the independent fork to Tab Groups Resurrection</li>
+          <li>Add Chrome Web Store branding, privacy documentation, and listing materials</li>
+          <li>Retain the Manifest V3 reliability fixes from the 0.9.x releases</li>
+        </ul>
         <h2>
           Release Notes (0.9.4)
         </h2>
@@ -370,14 +366,6 @@ class AboutSection extends React.Component {
 
   createContactLink() {
     return;
-    /* TODO add Guide
-          <span>
-              {" ("}
-              <a href="https://morikko.github.io/synctabgroups/#contact">
-              Contact</a>
-              {")"}
-          </span>
-          */
   }
 
 }

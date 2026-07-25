@@ -1,6 +1,6 @@
 {
   "extension_description": {
-    "message": "Sync Tab Groups sind eine einfache Möglichkeit, Ihre aktuellen Tabs nach Themen zu organisieren. Jede geöffnete Gruppe wird mit einem Fenster synchronisiert, so dass alle Änderungen an den Registerkarten gespeichert werden. Somit können Sie einen aktuellen Tabs-Flow schließen, während Sie einen anderen Tabs-Flow öffnen.",
+    "message": "Tab Groups Resurrection ist eine einfache Möglichkeit, Ihre aktuellen Tabs nach Themen zu organisieren. Jede geöffnete Gruppe wird mit einem Fenster synchronisiert, so dass alle Änderungen an den Registerkarten gespeichert werden. Somit können Sie einen aktuellen Tabs-Flow schließen, während Sie einen anderen Tabs-Flow öffnen.",
     "description": "Beschreibung der Erweiterung"
   },
 
@@ -235,7 +235,7 @@
   },
 
   "privileged_url_help_reason": {
-    "message": "Sync Tab Groups kann privilegierte URLs aus Sicherheitsgründen nicht direkt öffnen:",
+    "message": "Tab Groups Resurrection kann privilegierte URLs aus Sicherheitsgründen nicht direkt öffnen:",
     "description": ""
   },
 
@@ -295,7 +295,7 @@
   },
 
   "command_description__execute_browser_action": {
-    "message": "Öffne Sync Tab Groups Menü.",
+    "message": "Öffne das Tab Groups Resurrection Menü.",
     "description": ""
   },
 
@@ -445,16 +445,16 @@
   },
 
   "options_about_start": {
-    "message": "Willkommen bei Sync Tab Groups! Ich empfehle Ihnen dringend, die verschiedenen Optionen anzusehen. Sie werden dafür sorgen, dass Sync Tab Groups Ihren Erwartungen entspricht. Außerdem werden Sie verstehen, wie Sie die Erweiterung gut nutzen können, da jede Option erklärt wird."
+    "message": "Willkommen bei Tab Groups Resurrection! Ich empfehle Ihnen dringend, die verschiedenen Optionen anzusehen. Sie werden dafür sorgen, dass Tab Groups Resurrection Ihren Erwartungen entspricht. Außerdem werden Sie verstehen, wie Sie die Erweiterung gut nutzen können, da jede Option erklärt wird."
   },
 
   "options_about_further": {
-    "message": "Weitere Informationen finden Sie in der Anleitung (Link in der Navigationsleiste) auf der Sync Tab Groups Website.",
+    "message": "Weitere Informationen finden Sie über den Projektlink im Abschnitt „Über“.",
     "description": "Not used yet!"
   },
 
   "options_about_enjoy": {
-    "message": "Ich hoffe Sie lieben die Erfahrung mit Sync Tab groups. falls das so ist, zögern Sie nicht für andere eine nette Rezension auf der Download Seite der Erweiterungen zu hinterlassen.",
+    "message": "Wenn Ihnen Tab Groups Resurrection hilft, teilen Sie gerne Ihre Erfahrungen auf der Download-Seite der Erweiterung.",
     "description": "Message in the about section of the Preferences"
   },
 
@@ -464,7 +464,7 @@
   },
 
   "options_about_dev": {
-    "message": "Sync Tab Groups ist eine Erweiterung, die ich in meiner Freizeit entwickle. Ich tue alles, um Ihnen die beste Erweiterung zu bieten. Für diejenigen, die auf Bugs gestoßen sind, entschuldige ich mich für die Unannhemlichkeiten.",
+    "message": "Tab Groups Resurrection ist ein unabhängig gepflegter Fork mit Fokus auf Chromium-Kompatibilität und praktische Fehlerbehebungen.",
     "description": "Message in the about section of the Preferences"
   },
 
@@ -479,7 +479,7 @@
   },
 
   "options_behaviors_help_invisible": {
-    "message": "Ohne Sync Tab Groups neu geöffnete Fenster sind unsichtbar.",
+    "message": "Ohne Tab Groups Resurrection neu geöffnete Fenster sind unsichtbar.",
     "description": ""
   },
 
@@ -489,7 +489,7 @@
   },
 
   "options_behaviors_help_visible_new": {
-    "message": "Ohne Sync Tab Groups geöffnete Fenster werden als neue unbenannte Gruppe angezeigt.",
+    "message": "Ohne Tab Groups Resurrection geöffnete Fenster werden als neue unbenannte Gruppe angezeigt.",
     "description": ""
   },
 
@@ -599,7 +599,7 @@
   },
 
   "options_behaviors_private_visible": {
-    "message": "Neue private Fenster, die ohne Sync Tab Groups geöffnet werden, sind als neue private Gruppen sichtbar.",
+    "message": "Neue private Fenster, die ohne Tab Groups Resurrection geöffnet werden, sind als neue private Gruppen sichtbar.",
     "description": ""
   },
 
@@ -629,7 +629,7 @@
   },
 
   "options_behaviors_private_invisible_creation": {
-    "message": "Ohne Sync Tab Groups geöffnete neue private Fenster sind unsichtbar.",
+    "message": "Ohne Tab Groups Resurrection geöffnete neue private Fenster sind unsichtbar.",
     "description": ""
   },
 
@@ -880,7 +880,7 @@
   },
 
   "notification_update_title": {
-    "message": "Sync Tab Groups wurde aktualisiert zu Version",
+    "message": "Tab Groups Resurrection wurde aktualisiert zu Version",
     "description": "Title in the notification displayed when the extension is updated"
   },
 

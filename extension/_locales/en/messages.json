@@ -1,6 +1,6 @@
 {
   "extension_description": {
-    "message": "Sync Tab Groups is an easy way to manage all your tabs. You group, organize, search and active them easily.",
+    "message": "Organize, search, close, and restore browser tab groups, including their pinned tabs.",
     "description": "Description of the extension"
   },
 
@@ -240,7 +240,7 @@
   },
 
   "privileged_url_help_reason": {
-    "message": "Sync Tab Groups can't open directly privileged URLs for security reason:",
+    "message": "Tab Groups Resurrection can't open privileged URLs directly for security reasons:",
     "description": ""
   },
 
@@ -449,17 +449,17 @@
   },
 
   "options_about_start": {
-    "message": "Welcome to Sync Tab Groups! I highly recommend you to start checking the different options. You will make Sync Tab Groups fit your expectation. Also, you will understand how to use the extension well, as each option is explained.",
+    "message": "Welcome to Tab Groups Resurrection. Review the available options to make the extension fit your workflow.",
     "description": ""
   },
 
   "options_about_further": {
-    "message": "For further information, check the guide (link in the navigation bar) on the Sync Tab Groups Website.",
+    "message": "For documentation and support, use the project link in the About section.",
     "description": "Not used yet!"
   },
 
   "options_about_enjoy": {
-    "message": "I hope you are loving your experience with Sync Tab Groups. If so, don't hesitate to add a nice review on the extension download page for sharing it.",
+    "message": "If Tab Groups Resurrection helps you, consider sharing feedback on its store page.",
     "description": "Message in the about section of the Preferences"
   },
 
@@ -469,7 +469,7 @@
   },
 
   "options_about_dev": {
-    "message": "Sync Tab Groups is an extension I am developing in my free time. I am doing everything to provide you the best extension. For those who came across bugs, I apologize for the disagreement.",
+    "message": "Tab Groups Resurrection is an independently maintained fork focused on Chromium compatibility and practical bug fixes.",
     "description": "Message in the about section of the Preferences"
   },
 
@@ -484,7 +484,7 @@
   },
 
   "options_behaviors_help_invisible": {
-    "message": "New windows opened without Sync Tab Groups are Invisible.",
+    "message": "New windows opened without Tab Groups Resurrection are invisible.",
     "description": ""
   },
 
@@ -494,7 +494,7 @@
   },
 
   "options_behaviors_help_visible_new": {
-    "message": "New windows opened without Sync Tab Groups are Visible as a new unnamed group.",
+    "message": "New windows opened without Tab Groups Resurrection are visible as a new unnamed group.",
     "description": ""
   },
 
@@ -604,7 +604,7 @@
   },
 
   "options_behaviors_private_visible": {
-    "message": "New private windows opened without Sync Tab Groups are visible as a new private groups.",
+    "message": "New private windows opened without Tab Groups Resurrection are visible as new private groups.",
     "description": ""
   },
 
@@ -634,7 +634,7 @@
   },
 
   "options_behaviors_private_invisible_creation": {
-    "message": "New private windows opened without Sync Tab Groups are Invisible.",
+    "message": "New private windows opened without Tab Groups Resurrection are invisible.",
     "description": ""
   },
 
@@ -890,7 +890,7 @@
   },
 
   "notification_update_title": {
-    "message": "Sync Tab Groups has been updated to version",
+    "message": "Tab Groups Resurrection has been updated to version",
     "description": "Title in the notification displayed when the extension is updated"
   },
 

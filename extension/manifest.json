@@ -1,12 +1,14 @@
 {
   "manifest_version": 3,
-  "version": "0.9.4",
-  "name": "Sync Tab Groups",
+  "version": "1.0.0",
+  "name": "Tab Groups Resurrection",
   "description": "__MSG_extension_description__",
-  "homepage_url": "https://morikko.github.io/synctabgroups/",
+  "homepage_url": "https://github.com/allenyllee/sync-tab-groups",
   "icons": {
-    "64": "/share/icons/tabspace-active-64.png",
-    "32": "/share/icons/tabspace-active-32.png"
+    "128": "/share/icons/tab-groups-resurrection-128.png",
+    "64": "/share/icons/tab-groups-resurrection-64.png",
+    "32": "/share/icons/tab-groups-resurrection-32.png",
+    "16": "/share/icons/tab-groups-resurrection-16.png"
   },
 
   "browser_specific_settings": {
@@ -38,8 +40,11 @@
   },
 
   "action": {
-    "default_icon": "/share/icons/tabspace-32.png",
-    "default_title": "Sync Tab Groups",
+    "default_icon": {
+      "16": "/share/icons/tab-groups-resurrection-16.png",
+      "32": "/share/icons/tab-groups-resurrection-32.png"
+    },
+    "default_title": "Tab Groups Resurrection",
     "default_popup": "popup/popup.html"
   },
 
@@ -51,8 +56,8 @@
   "default_locale": "en",
 
   "developer": {
-    "name": "Eric Masseran",
-    "url": "https://github.com/Morikko"
+    "name": "Allen Lee",
+    "url": "https://github.com/allenyllee"
   },
 
   "commands": {

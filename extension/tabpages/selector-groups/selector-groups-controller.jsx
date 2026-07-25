@@ -43,7 +43,7 @@ let selectorMessenger = function(message) {
 // Set tab title
 document.title = Utils.getParameterByName("title");
 // Set tab icon
-Utils.setIcon("/share/icons/tabspace-active-64.png");
+Utils.setIcon("/share/icons/tab-groups-resurrection-64.png");
 
 ReactDOM.render(
   <ReactRedux.Provider store={selectorStore}>

@@ -103,8 +103,8 @@ ContextMenu.createMoveTabMenu = async function({throwOnError=false}={}) {
     };
     if (!Utils.isChrome()) {
       contextManageGroups.icons = {
-        "64": "/share/icons/tabspace-active-64.png",
-        "32": "/share/icons/tabspace-active-32.png",
+        "64": "/share/icons/tab-groups-resurrection-64.png",
+        "32": "/share/icons/tab-groups-resurrection-32.png",
       };
     }
     await ContextMenu.createMenu(contextManageGroups);

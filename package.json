@@ -1,7 +1,7 @@
 {
-  "name": "sync-tab-groups",
+  "name": "tab-groups-resurrection",
   "version": "1.0.0",
-  "description": "Packages necessary for compiling the project.",
+  "description": "An independently maintained Chromium MV3 tab-group manager.",
   "main": "index.js",
   "engines": {
     "node": ">=20"
@@ -13,6 +13,8 @@
     "test:jasmine:unit": "npm run build:chrome && node scripts/brave-jasmine.test.cjs unit",
     "test:jasmine:integration": "npm run build:chrome && node scripts/brave-jasmine.test.cjs integration",
     "test:regression": "npm test && npm run test:jasmine:unit && npm run test:jasmine:integration && npm run test:brave",
+    "test:release": "node --test scripts/release-package.test.cjs",
+    "store:capture": "npm run build:chrome && node scripts/capture-store-assets.cjs",
     "build": "rimraf build && npm run build:firefox && npm run build:chrome",
     "build:firefox": "webpack --mode development --env browser=firefox --progress",
     "build:chrome": "webpack --mode development --env browser=chrome --progress",
@@ -21,7 +23,7 @@
     "build:prod:firefox": "webpack --mode production --env browser=firefox --progress",
     "build:prod:chrome": "webpack --mode production --env browser=chrome --progress",
     "release": "npm run build:prod && npm run zip",
-    "zip": "cd release/firefox && zip -r ../sync-tab-groups-firefox.xpi * && cd ../chrome && zip -r ../sync-tab-groups-chrome.zip * && cd ../../",
+    "zip": "cd release/firefox && zip -r ../tab-groups-resurrection-firefox.xpi * && cd ../chrome && zip -r ../tab-groups-resurrection-chrome.zip * && cd ../../",
     "clean": "rimraf build release",
     "lint": "npx eslint extension --quiet",
     "firefox:prod": "npx web-ext run --sourceDir=release/firefox",
@@ -72,12 +74,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Morikko/sync-tab-groups.git"
+    "url": "git+https://github.com/allenyllee/sync-tab-groups.git"
   },
-  "author": "Morikko",
+  "author": "Allen Lee; based on Sync Tab Groups by Eric Masseran",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Morikko/sync-tab-groups/issues"
+    "url": "https://github.com/allenyllee/sync-tab-groups/issues"
   },
-  "homepage": "https://github.com/Morikko/sync-tab-groups/blob/master/README.md"
+  "homepage": "https://github.com/allenyllee/sync-tab-groups#readme"
 }

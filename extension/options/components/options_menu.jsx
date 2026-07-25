@@ -8,7 +8,7 @@ class OptionsMenu extends React.Component {
     return (<div id="menu">
       <a className="logo">
         <span>
-          <img src="/share/icons/tabspace-active-64.png" alt="" height="32"/>
+          <img src="/share/icons/tab-groups-resurrection-64.png" alt="" height="32"/>
         </span>
       </a>
       <input type="checkbox" id="show-menu" role="button"/>

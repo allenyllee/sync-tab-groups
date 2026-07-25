@@ -21,7 +21,7 @@ class ManageBar extends React.Component {
     return (
       <div id="menu">
         <div className="title">
-          <img src="/share/icons/tabspace-active-64.png" alt="" height="32"/>
+          <img src="/share/icons/tab-groups-resurrection-64.png" alt="" height="32"/>
           <span>{"Selector"}</span>
         </div>
         <div className="bar-buttons">

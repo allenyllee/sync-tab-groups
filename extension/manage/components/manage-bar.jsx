@@ -12,7 +12,7 @@ class ManageBar extends React.Component {
     return (
       <div id="menu">
         <div className="title">
-          <img src="/share/icons/tabspace-active-64.png" alt="" height="32"/>
+          <img src="/share/icons/tab-groups-resurrection-64.png" alt="" height="32"/>
           <span>{browser.i18n.getMessage("group_manager")}</span>
         </div>
         <div className="right-buttons">

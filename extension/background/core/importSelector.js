@@ -67,7 +67,7 @@ ImportSelector.onOpenGroupsSelector = async function({
   if (groups.length === 0 && !force) {
     browser.notifications.create({
       "type": "basic",
-      "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
+      "iconUrl": browser.runtime.getURL("/share/icons/tab-groups-resurrection-64.png"),
       "title": type + " " + title,
       "message": "The group list was empty...",
       "eventTime": 4000,
@@ -77,7 +77,7 @@ ImportSelector.onOpenGroupsSelector = async function({
   if (GroupManager.checkCorruptedGroups(groups)) {
     browser.notifications.create({
       "type": "basic",
-      "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
+      "iconUrl": browser.runtime.getURL("/share/icons/tab-groups-resurrection-64.png"),
       "title": type + " " + title,
       "message": "The group list is corrupted... It is impossible to load it.",
       "eventTime": 4000,

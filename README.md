@@ -12,7 +12,7 @@ backed up.
 ## Current status
 
 - The extension has been migrated from Manifest V2 to Manifest V3.
-- The current fork release is `v0.9.4`.
+- The current fork release is `v1.0.0`.
 - Chromium-based browsers are the primary maintenance target. Development and
   regression testing are currently performed with Brave.
 - Groups, tabs, pinned tabs, window associations, context menus, options, and
@@ -23,8 +23,9 @@ backed up.
 - Maintenance is intentionally modest: keep the extension usable, adapt it to
   browser changes, and fix practical bugs. There is no large feature roadmap.
 - This fork does not currently provide cloud or cross-device synchronization.
-- The new name is not yet published on the Chrome Web Store. Until then, build
-  and load the extension locally from this repository.
+- A Chrome Web Store submission package and listing materials are maintained in
+  `store-assets`. Until the listing is approved, build and load the extension
+  locally from this repository.
 
 The Manifest V3 migration was developed with assistance from OpenAI Codex and
 then validated with automated asset checks, Jasmine unit and integration tests,
@@ -83,6 +84,14 @@ request. Use `extension/_locales/en/messages.json` as the current source.
 
 If you find a bug, please [open an issue](https://github.com/allenyllee/sync-tab-groups/issues).
 
+## Privacy
+
+Tab titles, URLs, pinned state, and group metadata are stored locally so groups
+can be closed, restored, searched, exported, and backed up. The extension does
+not send this data to the developer or any third party.
+
+See the [privacy policy](PRIVACY.md) for details.
+
 ## Build
 
 ### External dependencies
@@ -98,7 +107,8 @@ If you find a bug, please [open an issue](https://github.com/allenyllee/sync-tab
 - `watch` watches and rebuilds the Firefox development target
 - `build:prod` builds both production targets to `release/firefox/` and `release/chrome/`
 - `build:prod:firefox` / `build:prod:chrome` build one production target
-- `zip` creates `release/sync-tab-groups-firefox.xpi` and `release/sync-tab-groups-chrome.zip`
+- `zip` creates `release/tab-groups-resurrection-firefox.xpi` and
+  `release/tab-groups-resurrection-chrome.zip`
 - `release` Do the `build:prod` and `zip` commands
 - `lint` show only errors
 - `clean` Remove the folders `build/` and `release/`

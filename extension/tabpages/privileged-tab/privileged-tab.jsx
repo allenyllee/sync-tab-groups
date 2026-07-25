@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tab_url = ("URL")+ ": " + url,
     copy_url = "Copy URL in the clipboard",
     privileged_url = "About Privileged URLs",
-    privileged_url_help_reason = "Sync Tab Groups can't open directly privileged URLs for security reason:",
+    privileged_url_help_reason = "Tab Groups Resurrection can't open privileged URLs directly for security reasons:",
     open_url_help_method = "But you can open it manually:",
     open_url_help_method_part_1 = "Click on the button",
     open_url_help_method_part_2 = "Paste the URL in the address bar",
@@ -42,12 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
     (<div>
       <div className="title">
         <img
-          src="../../share/icons/tabspace-active-64.png"
-          alt="Sync Tab Groups icon"
+          src="../../share/icons/tab-groups-resurrection-64.png"
+          alt="Tab Groups Resurrection icon"
           width="64"
           height="64"
         />
-        Sync Tab Groups
+        Tab Groups Resurrection
       </div>
       <div className="tab_information">
         <h1 className="privileged-url">

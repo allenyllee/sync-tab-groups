@@ -58,15 +58,15 @@ Utils.setBrowserActionIcon = function(icon_type) {
   if (icon_type === true) { // White
     browser.action.setIcon({
       path: {
-        16: "/share/icons/tabspace-light-16.png",
-        32: "/share/icons/tabspace-light-32.png",
+        16: "/share/icons/tab-groups-resurrection-16.png",
+        32: "/share/icons/tab-groups-resurrection-32.png",
       },
     });
   } else if (icon_type === false) { // Black
     browser.action.setIcon({
       path: {
-        16: "/share/icons/tabspace-16.png",
-        32: "/share/icons/tabspace-32.png",
+        16: "/share/icons/tab-groups-resurrection-16.png",
+        32: "/share/icons/tab-groups-resurrection-32.png",
       },
     });
   }

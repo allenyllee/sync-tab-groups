@@ -92,16 +92,7 @@ const config = {
       },
     ],
   },
-  plugins: [
-    new CopyWebpackPlugin({
-      patterns: multipleCopy('_locales', 'service-worker.js')
-        .concat([
-          {from: '**/*.html'},
-          {from: '**/*.css'},
-          {from: '**/*.png'},
-        ]),
-    }),
-  ],
+  plugins: [],
 };
 
 module.exports = (env, argv) => {
@@ -121,12 +112,34 @@ module.exports = (env, argv) => {
   }
 
   const outputRoot = argv.mode === 'production' ? 'release' : 'build';
+  const productionCopyIgnore = [
+    '**/tests/**',
+    '**/share/icons/chrome.png',
+    '**/share/icons/firefox.png',
+    '**/share/icons/sync-tab-groups.png',
+    '**/share/icons/tabspace-16.png',
+    '**/share/icons/tabspace-32.png',
+    '**/share/icons/tabspace-active-32.png',
+    '**/share/icons/tabspace-active-64.png',
+    '**/share/icons/tabspace-light-16.png',
+    '**/share/icons/tabspace-light-32.png',
+  ];
+  const copiedContent = ['**/*.html', '**/*.css', '**/*.png'].map(from => ({
+    from,
+    globOptions: argv.mode === 'production'
+      ? {ignore: productionCopyIgnore}
+      : undefined,
+  }));
 
   return merge(config, envConfig, {
     output: {
       path: path.resolve(__dirname, `./${outputRoot}/${browserTarget}`),
     },
     plugins: [
+      new CopyWebpackPlugin({
+        patterns: multipleCopy('_locales', 'service-worker.js')
+          .concat(copiedContent),
+      }),
       new CopyWebpackPlugin({
         patterns: [{
           from: `manifest.${browserTarget}.json`,

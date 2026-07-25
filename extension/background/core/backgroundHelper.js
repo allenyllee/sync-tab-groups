@@ -56,7 +56,7 @@ BackgroundHelper.onOpenGroupInNewWindow = function({groupId}) {
 
 BackgroundHelper.onOpenGuide = function() {
   Utils.openUrlOncePerWindow(
-    "https://morikko.github.io/synctabgroups/#guide"
+    "https://github.com/allenyllee/sync-tab-groups#readme"
   );
 }
 

@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Set tab title
   document.title = browser.i18n.getMessage("group_manager");
   // Set tab icon
-  Utils.setIcon("/share/icons/tabspace-active-64.png");
+  Utils.setIcon("/share/icons/tab-groups-resurrection-64.png");
 
   ReactDOM.render(
     <ReactRedux.Provider store={groupStore}>

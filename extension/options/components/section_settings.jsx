@@ -336,8 +336,8 @@ class SettingsSection extends React.Component {
     } else {
       browser.notifications.create("RELOAD_TABS", {
         "type": "basic",
-        "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
-        "title": "Sync Tab Groups",
+        "iconUrl": browser.runtime.getURL("/share/icons/tab-groups-resurrection-64.png"),
+        "title": "Tab Groups Resurrection",
         "message": browser.i18n.getMessage("options_behaviors_tabsopening_nothing_reload"),
       });
     }
@@ -354,8 +354,8 @@ class SettingsSection extends React.Component {
     } else {
       browser.notifications.create("CLOSE_HIDDEN_TABS", {
         "type": "basic",
-        "iconUrl": browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
-        "title": "Sync Tab Groups",
+        "iconUrl": browser.runtime.getURL("/share/icons/tab-groups-resurrection-64.png"),
+        "title": "Tab Groups Resurrection",
         "message": browser.i18n.getMessage("setting_nothin_close_all_hidden_tabs"),
       });
     }

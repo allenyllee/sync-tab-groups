@@ -197,14 +197,14 @@ LogManager.downloadLog = async function downloadLog(logs=LogManager.logs) {
       : await browser.runtime.getBrowserInfo()
     let url = Utils.createJsonFileUrl({
       version: {
-        "SyncTabGroups": browser.runtime.getManifest().version,
+        "TabGroupsResurrection": browser.runtime.getManifest().version,
         browser: browserInfo,
         os: (await browser.runtime.getPlatformInfo()).os,
       },
       logs,
       options: OptionManager.options,
     }, 2);
-    let filename = "SyncTabGroups-Log-" + d.getFullYear() + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2) + "-" + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2) + ".json";
+    let filename = "TabGroupsResurrection-Log-" + d.getFullYear() + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2) + "-" + ("0" + d.getHours()).slice(-2) + ("0" + d.getMinutes()).slice(-2) + ("0" + d.getSeconds()).slice(-2) + ".json";
 
     let id = await browser.downloads.download({
       url: url,
@@ -226,9 +226,9 @@ LogManager.downloadLog = async function downloadLog(logs=LogManager.logs) {
 LogManager.showErrorNotification = function() {
   browser.notifications.create(LogManager.NOTIFICATION_ID, {
     type: 'basic',
-    iconUrl: browser.runtime.getURL("/share/icons/tabspace-active-64.png"),
-    title: "Error caught in Sync Tab Groups",
-    message: "An unexpected behavior happened in Sync Tab Groups. In order to improve the extension, could you send me the error back. Click on this notification to open the explanation on how to do it.",
+    iconUrl: browser.runtime.getURL("/share/icons/tab-groups-resurrection-64.png"),
+    title: "Error caught in Tab Groups Resurrection",
+    message: "Tab Groups Resurrection encountered an unexpected error. Click this notification to open the troubleshooting information.",
   });
 }
 
@@ -239,7 +239,7 @@ LogManager.init = function() {
     if (notificationId === LogManager.NOTIFICATION_ID) {
       BackgroundHelper.onOpenSettings(true);
       Utils.openUrlOncePerWindow(
-        "https://github.com/Morikko/sync-tab-groups/wiki/How-to-help-me-solve-bugs"
+        "https://github.com/allenyllee/sync-tab-groups/issues"
       );
     }
   }
