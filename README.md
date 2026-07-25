@@ -1,65 +1,98 @@
-# The project is no more maintained
+# Tab Groups Resurrection
 
-Although I used it a lot, I feel less and less need for such an advanced way to manage my tabs. Aside from my full-time job, I have not much time left to put in this project. 
+Tab Groups Resurrection is an independently maintained, Chromium-focused fork
+of [Sync Tab Groups](https://github.com/Morikko/sync-tab-groups), originally
+created by [Morikko](https://github.com/Morikko).
 
-Even, if this project ends, I thank all of you that used the extension or helped me to make this extension so great.
+It keeps the original workflow of organizing tabs by topic, switching between
+groups, and keeping pinned tabs inside their groups. Groups can be closed and
+reopened without losing their tabs, and can be searched, moved, exported, and
+backed up.
 
-The project remains:
- - Available: you continue to use it
- - Open-source: you are free to fork it or reuse the code
+## Current status
 
-Alternatives:
-- Firefox: [Simple Tab Groups](https://addons.mozilla.org/en-US/firefox/addon/simple-tab-groups/)
-  - Actively maintained and with more features
-  - But no more pinned tabs inside groups and the double window to manage the tabs 
-- Chrome: [Tab Session Manager](https://github.com/sienori/Tab-Session-Manager) (also compatible FF)
+- The extension has been migrated from Manifest V2 to Manifest V3.
+- The current fork release is `v0.9.4`.
+- Chromium-based browsers are the primary maintenance target. Development and
+  regression testing are currently performed with Brave.
+- Groups, tabs, pinned tabs, window associations, context menus, options, and
+  backup scheduling are designed to survive service-worker suspension and full
+  browser restarts.
+- Firefox builds are still produced, but Firefox compatibility is currently
+  best-effort and is not validated to the same level as Chromium.
+- Maintenance is intentionally modest: keep the extension usable, adapt it to
+  browser changes, and fix practical bugs. There is no large feature roadmap.
+- This fork does not currently provide cloud or cross-device synchronization.
+- The new name is not yet published on the Chrome Web Store. Until then, build
+  and load the extension locally from this repository.
 
-If you are curious about the experience of developing an open-source extension, you will enjoy [the article about Sync Tab Groups](https://medium.com/@Morikko/the-story-of-sync-tab-groups-the-web-extension-for-managing-your-tabs-d40ebb1079ec).
+The Manifest V3 migration was developed with assistance from OpenAI Codex and
+then validated with automated asset checks, Jasmine unit and integration tests,
+and a Brave regression suite covering service-worker and full-browser restarts.
 
+## Install in Chromium or Brave
 
-# Sync Tab Groups
+```sh
+npm install
+npm run build:chrome
+```
 
-Sync Tab Groups is an easy way to manage all your tabs. You organize them depending on a topic by group. Groups can be closed and reopened without caring about your session. Moreover, you can easily search, active, move, save and remove your groups and tabs.
+Open `brave://extensions` or `chrome://extensions`, enable **Developer mode**,
+choose **Load unpacked**, and select the generated `build/chrome` directory.
 
-Check the [website](https://morikko.github.io/synctabgroups/) for more information (video, explanations, guides...)
+Run the complete automated test suite with:
 
-[![Try it now on Firefox](https://user-images.githubusercontent.com/7831572/36659929-7ecb2042-1ad6-11e8-82a4-0628702e354e.png)](https://addons.mozilla.org/en-US/firefox/addon/sync-tab-groups/)
+```sh
+npm run test:regression
+```
 
-[![Try it now on Chrome](https://user-images.githubusercontent.com/7831572/36659935-8402879e-1ad6-11e8-83f7-d645a108696a.png)](https://chrome.google.com/webstore/detail/sync-tab-groups/gbkddinkjahdfhaiifploahejhmaaeoa)
- 
+## Relationship to Sync Tab Groups
 
-# Contributing
+The original Sync Tab Groups project ended active maintenance and its repository
+was archived. Morikko reviewed this fork and asked that it continue
+independently under a different name to avoid confusing users about which
+project is active and where to request support.
 
- - **I will gladly help and guide anyone willing to maintain and improve the extension**. 
- - **Thus, any PR are welcomed.**
- - **I will mark all the issues I am ready to include in the project**.
+See the maintainer discussion in
+[issue #1](https://github.com/allenyllee/sync-tab-groups/issues/1).
 
-The only conditions are:
- - the tests should pass
- - the lint should have no error
- - the compatibility should be kept with the previous features
- - it should work on both Chrome and Firefox (or for specific browser features, it should not disturb the incompatible browser)
+Tab Groups Resurrection preserves the original license, copyright notices, and
+project attribution. It is a community-maintained fork and is not maintained or
+endorsed by Morikko.
 
+For the history of the original project, see
+[The story of Sync Tab Groups](https://medium.com/@Morikko/the-story-of-sync-tab-groups-the-web-extension-for-managing-your-tabs-d40ebb1079ec).
+
+## Contributing
+
+Bug reports and focused compatibility fixes are welcome. Before submitting a
+change:
+
+- run `npm run test:regression`
+- run `npm run lint`
+- avoid regressions to existing group, pinned-tab, and backup workflows
+- keep browser-specific behavior isolated so it does not break other targets
 
 ## Translation
-I would gladly accept other translations. Select the link related to your language and translate the different messages. Download the resulting files and send it me (Email) or with a PR.
- - [French](https://morikko.github.io/translate-web-extension/translate?headoriginal=https://github.com/Morikko/sync-tab-groups/blobôô/master/extension/_locales/en/messages.json&baseoriginal=https://github.com/Morikko/sync-tab-groups/blob/2351491da6541038be7db42f3917f04831116f47/extension/_locales/en/messages.json&basetarget=https://github.com/Morikko/sync-tab-groups/blob/2351491da6541038be7db42f3917f04831116f47/extension/_locales/fr/messages.json) (v0.6.3)
- - [German](https://morikko.github.io/translate-web-extension/translate?headoriginal=https://github.com/Morikko/sync-tab-groups/blob/master/extension/_locales/en/messages.json&baseoriginal=https://github.com/Morikko/sync-tab-groups/blob/v0.6.0/extension/_locales/en/messages.json&basetarget=https://github.com/Morikko/sync-tab-groups/blob/v0.6.0/extension/_locales/de/messages.json) (v0.6.0)
- - [Spanish](https://morikko.github.io/translate-web-extension/translate?headoriginal=https://github.com/Morikko/sync-tab-groups/blob/master/extension/_locales/en/messages.json&baseoriginal=https://github.com/Morikko/sync-tab-groups/blob/94208ab87efa8cb9ed39a2756d6f1ec9a2b8f6b4/extension/_locales/en/messages.json&basetarget=https://github.com/Morikko/sync-tab-groups/blob/94208ab87efa8cb9ed39a2756d6f1ec9a2b8f6b4/extension/_locales/es/messages.json) (v0.7.1)
- - [Russian](https://morikko.github.io/translate-web-extension/translate?headoriginal=https://github.com/Morikko/sync-tab-groups/blob/master/extension/_locales/en/messages.json&baseoriginal=https://github.com/Morikko/sync-tab-groups/blob/e9caca3ed60c9108a2c53f6b9d92ab3ad5a338f4/extension/_locales/en/messages.json&basetarget=https://github.com/Morikko/sync-tab-groups/blob/e9caca3ed60c9108a2c53f6b9d92ab3ad5a338f4/extension/_locales/ru/messages.json) (v0.4.1)
- - [Taiwanese Mandarin](https://morikko.github.io/translate-web-extension/translate?headoriginal=https://github.com/Morikko/sync-tab-groups/blob/master/extension/_locales/en/messages.json&baseoriginal=https://github.com/Morikko/sync-tab-groups/blob/b8750968b21f7dc7f9a4461f2790e0a700764e6a/extension/_locales/en/messages.json&basetarget=https://github.com/Morikko/sync-tab-groups/blob/b8750968b21f7dc7f9a4461f2790e0a700764e6a/extension/_locales/zh_TW/messages.json) (v0.6.5 Partial)
- - [New language](https://morikko.github.io/translate-web-extension/translate?headoriginal=https://github.com/Morikko/sync-tab-groups/blob/master/extension/_locales/en/messages.json) 
 
-# Bugs
-If you find a bug, please [open an issue](https://github.com/Morikko/sync-tab-groups/issues).
+Translations inherited from Sync Tab Groups are kept in `extension/_locales`.
+Translation fixes and new locales can be submitted to this fork with a pull
+request. Use `extension/_locales/en/messages.json` as the current source.
 
-# Build
+## Bugs
 
-## External dependencies
+If you find a bug, please [open an issue](https://github.com/allenyllee/sync-tab-groups/issues).
+
+## Build
+
+### External dependencies
  - Node >= 20
  - Firefox Dev Edition (if you want to use web-ext)
 
-## Scripts (with `npm run`)
+### Scripts (with `npm run`)
+- `test:regression` runs the asset, Jasmine unit/integration, and Brave MV3 regression suites
+- `test:brave` runs the Brave MV3 browser regression suite
+- `test:jasmine:unit` / `test:jasmine:integration` run the legacy Jasmine suites in Brave
 - `build` builds both MV3 targets in development mode to `build/firefox/` and `build/chrome/`
 - `build:firefox` / `build:chrome` build one development target
 - `watch` watches and rebuilds the Firefox development target
@@ -72,20 +105,21 @@ If you find a bug, please [open an issue](https://github.com/Morikko/sync-tab-gr
 - `firefox:dev` run firefox loaded with the dev extension
 - `firefox:prod` run firefox loaded with the production extension
 
-## Difference between mode
+### Difference between mode
 1. `process.env.IS_PROD` is only true in the production code, so `Utils.DEBUG_MODE` is true only in the dev code
 2. Tests are only built in the dev version
 3. Firefox and Chrome use separate MV3 manifests because Firefox still uses a background script while Chrome uses a service worker
 
 
-# Credits
-Translation:
+## Credits
+
+Translations inherited from the original project:
  - German (thanks @bitkleberAST)
  - Russian (thanks @Александр)
  - Spanish (thanks [@lucas-mancini](https://github.com/lucas-mancini/))
  - Taiwanese Mandarin (thanks @rzfang)
  - French (thanks @ko-dever)
  
-[Website Repository](https://github.com/Morikko/synctabgroups)
+[Original website repository](https://github.com/Morikko/synctabgroups)
 
-Thank you all of you for helping me improving and fixing the extension :)
+Thank you to everyone who helped improve and fix the original extension.
