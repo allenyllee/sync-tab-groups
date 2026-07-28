@@ -17,6 +17,7 @@ This directory contains the text and image assets for the independent
   answers
 - `reviewer-notes.md`: reviewer test instructions
 - `submission-checklist.md`: final manual submission steps
+- `automated-publishing.md`: GitHub Actions and API v2 release setup
 - `screenshots/`: 1280x800 screenshots of the actual extension
 - `source/`: editable or full-resolution source artwork
 

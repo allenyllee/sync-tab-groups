@@ -4,6 +4,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const releaseRoot = path.resolve(__dirname, '../release/chrome');
+const expectedVersion = require('../package.json').version;
 
 function walk(directory) {
   return fs.readdirSync(directory, {withFileTypes: true}).flatMap(entry => {
@@ -19,7 +20,7 @@ test('Chrome Web Store package has the expected identity', () => {
 
   assert.equal(manifest.manifest_version, 3);
   assert.equal(manifest.name, 'Tab Groups Resurrection');
-  assert.equal(manifest.version, '1.0.0');
+  assert.equal(manifest.version, expectedVersion);
   assert.equal(
     manifest.icons['128'],
     '/share/icons/tab-groups-resurrection-128.png',

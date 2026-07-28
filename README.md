@@ -146,6 +146,10 @@ See the [privacy policy](PRIVACY.md) for details.
 - `zip` creates `release/tab-groups-resurrection-firefox.xpi` and
   `release/tab-groups-resurrection-chrome.zip`
 - `release` Do the `build:prod` and `zip` commands
+- `version:set -- 1.0.1` updates package and manifest versions together
+- `release:check-version -- v1.0.1` verifies a release tag against every version
+- `store:publish` uploads and submits a validated ZIP through the Chrome Web
+  Store API; it is intended for the automated release workflow
 - `lint` show only errors
 - `clean` Remove the folders `build/` and `release/`
 - `firefox:dev` run firefox loaded with the dev extension
