@@ -50,6 +50,42 @@ async function waitFor(action, description, timeout=20000) {
   throw new Error(`Timed out waiting for ${description}${detail}`, {cause: lastError});
 }
 
+function browserHasExited(browser) {
+  return browser.exitCode !== null || browser.signalCode !== null;
+}
+
+async function waitForBrowserExit(browser, timeout) {
+  if (browserHasExited(browser)) return;
+  await Promise.race([
+    new Promise(resolve => browser.once('exit', resolve)),
+    delay(timeout),
+  ]);
+}
+
+async function stopBrowser(browser) {
+  if (!browser || browserHasExited(browser)) return;
+
+  if (process.platform === 'win32' && browser.pid) {
+    spawnSync('taskkill.exe', ['/PID', String(browser.pid), '/T', '/F'], {
+      stdio: 'ignore',
+    });
+  } else {
+    browser.kill('SIGTERM');
+  }
+  await waitForBrowserExit(browser, 3000);
+
+  if (!browserHasExited(browser)) {
+    if (process.platform === 'win32' && browser.pid) {
+      spawnSync('taskkill.exe', ['/PID', String(browser.pid), '/T', '/F'], {
+        stdio: 'ignore',
+      });
+    } else {
+      browser.kill('SIGKILL');
+    }
+    await waitForBrowserExit(browser, 5000);
+  }
+}
+
 function getFreePort() {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -684,23 +720,7 @@ async function run() {
     if (controlPage) controlPage.close();
     if (worker) worker.close();
     if (browserClient) browserClient.close();
-    if (process.platform === 'win32' && browser.pid) {
-      spawnSync('taskkill.exe', ['/PID', String(browser.pid), '/T', '/F'], {
-        stdio: 'ignore',
-      });
-    } else {
-      browser.kill();
-      await Promise.race([
-        new Promise(resolve => browser.once('exit', resolve)),
-        delay(3000),
-      ]);
-    }
-    if (browser.exitCode === null) {
-      await Promise.race([
-        new Promise(resolve => browser.once('exit', resolve)),
-        delay(5000),
-      ]);
-    }
+    await stopBrowser(browser);
     fs.rmSync(profile, {
       recursive: true,
       force: true,
@@ -723,5 +743,6 @@ module.exports = {
   findBrave,
   getFreePort,
   getJson,
+  stopBrowser,
   waitFor,
 };

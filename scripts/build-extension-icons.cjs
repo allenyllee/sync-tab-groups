@@ -6,10 +6,10 @@ const {spawn, spawnSync} = require('node:child_process');
 
 const {
   CdpClient,
-  delay,
   findBrave,
   getFreePort,
   getJson,
+  stopBrowser,
   waitFor,
 } = require('./brave-regression.test.cjs');
 
@@ -205,19 +205,7 @@ async function run() {
   } finally {
     if (page) page.close();
     if (browserClient) browserClient.close();
-    if (process.platform === 'win32' && browser.pid) {
-      spawnSync('taskkill.exe', ['/PID', String(browser.pid), '/T', '/F'], {
-        stdio: 'ignore',
-      });
-    } else {
-      browser.kill();
-    }
-    if (browser.exitCode === null) {
-      await Promise.race([
-        new Promise(resolve => browser.once('exit', resolve)),
-        delay(5000),
-      ]);
-    }
+    await stopBrowser(browser);
     fs.rmSync(profile, {
       recursive: true,
       force: true,
