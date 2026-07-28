@@ -89,11 +89,13 @@ jobs:
       - name: Validate production package
         run: npm run test:release
 
-      - name: Preserve the reviewed package
+      - name: Preserve release packages
         uses: actions/upload-artifact@v4
         with:
           name: tab-groups-resurrection-${{ github.ref_name }}
-          path: release/tab-groups-resurrection-chrome.zip
+          path: |
+            release/tab-groups-resurrection-chrome.zip
+            release/tab-groups-resurrection-firefox.xpi
           if-no-files-found: error
           retention-days: 90
 
@@ -104,3 +106,39 @@ jobs:
           CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
           CWS_SERVICE_ACCOUNT_JSON: ${{ secrets.CWS_SERVICE_ACCOUNT_JSON }}
         run: npm run store:publish
+
+  release:
+    name: Publish GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download validated release packages
+        uses: actions/download-artifact@v4
+        with:
+          name: tab-groups-resurrection-${{ github.ref_name }}
+          path: release
+
+      - name: Publish GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release_tag="$GITHUB_REF_NAME"
+          chrome_package="release/tab-groups-resurrection-chrome.zip"
+          firefox_package="release/tab-groups-resurrection-firefox.xpi"
+
+          if gh release view "$release_tag" >/dev/null 2>&1; then
+            gh release upload "$release_tag" \
+              "$chrome_package" \
+              "$firefox_package" \
+              --clobber
+          else
+            gh release create "$release_tag" \
+              "$chrome_package" \
+              "$firefox_package" \
+              --verify-tag \
+              --generate-notes \
+              --title "Tab Groups Resurrection $release_tag"
+          fi
