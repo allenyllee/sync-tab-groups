@@ -259,8 +259,12 @@ describe("window.Background.TabManager", ()=>{
     });
 
     afterAll(async function() {
-      if (TestManager.getGroupDeprecated(this.groups, 1).windowId >= 0) {
-        await browser.windows.remove(TestManager.getGroupDeprecated(this.groups, 1).windowId);
+      const secondGroup = TestManager.getGroup(
+        window.Background.GroupManager.groups,
+        this.groups[1].id,
+      );
+      if (secondGroup.windowId >= 0) {
+        await browser.windows.remove(secondGroup.windowId);
       }
       for (let group of this.groups) {
         if (window.Background.GroupManager.getGroupIndexFromGroupId(group.id, {error: false}) >= 0)
@@ -276,10 +280,14 @@ describe("window.Background.TabManager", ()=>{
         true,
       );
 
-      expect(TestManager.getGroupDeprecated(this.groups, 0).windowId).not.toEqual(browser.windows.WINDOW_ID_NONE);
+      const firstGroup = TestManager.getGroup(
+        window.Background.GroupManager.groups,
+        this.groups[0].id,
+      );
+      expect(firstGroup.windowId).not.toEqual(browser.windows.WINDOW_ID_NONE);
 
-      await TestManager.splitOnHalfTopScreen(TestManager.getGroupDeprecated(this.groups, 0).windowId);
-      let tabs = await window.Background.TabManager.getTabsInWindowId(TestManager.getGroupDeprecated(this.groups, 0).windowId);
+      await TestManager.splitOnHalfTopScreen(firstGroup.windowId);
+      let tabs = await window.Background.TabManager.getTabsInWindowId(firstGroup.windowId);
 
       let nbrDiscarded = TestManager.countDiscardedTabs(tabs);
 
@@ -291,20 +299,36 @@ describe("window.Background.TabManager", ()=>{
 
     it("Switch in current Window", async function() {
       let tabIndex = Math.round(this.length/2);
+      const firstGroup = TestManager.getGroup(
+        window.Background.GroupManager.groups,
+        this.groups[0].id,
+      );
       await browser.windows.update(
-        TestManager.getGroupDeprecated(this.groups, 0).windowId,
+        firstGroup.windowId,
         {focused: true},
       );
+      await TestManager.waitWindowToBeFocused(firstGroup.windowId);
+      const focusedWindow = await browser.windows.get(firstGroup.windowId);
+      spyOn(browser.windows, "getLastFocused")
+        .and.returnValue(Promise.resolve(focusedWindow));
       await window.Background.TabManager.selectTab(
         tabIndex,
         this.groups[1].id,
         false,
       );
 
-      expect(TestManager.getGroupDeprecated(this.groups, 1).windowId).not.toEqual(browser.windows.WINDOW_ID_NONE);
-      expect(TestManager.getGroupDeprecated(this.groups, 0).windowId).toEqual(browser.windows.WINDOW_ID_NONE);
+      const openedGroup = TestManager.getGroup(
+        window.Background.GroupManager.groups,
+        this.groups[1].id,
+      );
+      const closedGroup = TestManager.getGroup(
+        window.Background.GroupManager.groups,
+        this.groups[0].id,
+      );
+      expect(openedGroup.windowId).not.toEqual(browser.windows.WINDOW_ID_NONE);
+      expect(closedGroup.windowId).toEqual(browser.windows.WINDOW_ID_NONE);
 
-      let tabs = await window.Background.TabManager.getTabsInWindowId(TestManager.getGroupDeprecated(this.groups, 1).windowId);
+      let tabs = await window.Background.TabManager.getTabsInWindowId(openedGroup.windowId);
 
       let nbrDiscarded = TestManager.countDiscardedTabs(tabs);
 
