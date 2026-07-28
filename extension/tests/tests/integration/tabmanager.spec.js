@@ -308,13 +308,11 @@ describe("window.Background.TabManager", ()=>{
         {focused: true},
       );
       await TestManager.waitWindowToBeFocused(firstGroup.windowId);
-      const focusedWindow = await browser.windows.get(firstGroup.windowId);
-      spyOn(browser.windows, "getLastFocused")
-        .and.returnValue(Promise.resolve(focusedWindow));
       await window.Background.TabManager.selectTab(
         tabIndex,
         this.groups[1].id,
         false,
+        firstGroup.windowId,
       );
 
       const openedGroup = TestManager.getGroup(

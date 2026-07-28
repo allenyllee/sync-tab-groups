@@ -61,7 +61,10 @@ WindowManager.decoratorCurrentlyChanging = function(func) {
   return async function() {
     let result, currentWindow, previousGroupId;
     try {
-      currentWindow = await browser.windows.getLastFocused();
+      const {currentWindowId} = arguments[1] || {};
+      currentWindow = currentWindowId == null
+        ? await browser.windows.getLastFocused()
+        : await browser.windows.get(currentWindowId);
       if (WindowManager.WINDOW_CURRENTLY_SWITCHING.hasOwnProperty(
         currentWindow.id
       )) {
@@ -159,13 +162,19 @@ function makeSnapOfGroup(group) {
  * Open newGroupId in current window, close the previous group if has
  * Secure: don't switch a window if it is already switching
  * @param {number} newGroupId
+ * @param {Object} options
+ * @param {number} options.currentWindowId - explicit target for deterministic callers
  * @returns {Promise<number>} windowId
  */
-WindowManager.switchGroupInCurrentWindow = async function(newGroupId) {
+WindowManager.switchGroupInCurrentWindow = async function(newGroupId, {
+  currentWindowId,
+}={}) {
   let snapNewGroup;
   let snapOldGroup;
   try {
-    const currentWindow = await browser.windows.getLastFocused();
+    const currentWindow = currentWindowId == null
+      ? await browser.windows.getLastFocused()
+      : await browser.windows.get(currentWindowId);
     let forceClosing = true;
     snapNewGroup = makeSnapOfGroup(
       GroupManager.getGroupFromGroupId(newGroupId)
@@ -278,7 +287,10 @@ WindowManager.closeGroup = async function(groupId, {close_window = false}={}) {
  * @param {number} newGroupId - the group id
  * @returns {Promise<number>} windowId
  */
-WindowManager.selectGroup = async function(newGroupId, {newWindow=false}={}) {
+WindowManager.selectGroup = async function(newGroupId, {
+  newWindow=false,
+  currentWindowId,
+}={}) {
   try {
     let newGroupIndex = GroupManager.getGroupIndexFromGroupId(
       newGroupId
@@ -298,7 +310,10 @@ WindowManager.selectGroup = async function(newGroupId, {newWindow=false}={}) {
       if (newWindow) {
         windowId = await WindowManager.openGroupInNewWindow(newGroupId);
       } else {
-        windowId = await WindowManager.switchGroupInCurrentWindow(newGroupId);
+        windowId = await WindowManager.switchGroupInCurrentWindow(
+          newGroupId,
+          {currentWindowId},
+        );
       }
     }
     return windowId;

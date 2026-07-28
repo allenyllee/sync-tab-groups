@@ -38,9 +38,16 @@ async function activeTabInWindow(windowId, tabIndex) {
  * Switch to another group if necessary
  * @param {number} tabIndex - the tabs index
  * @param {number} groupId - the tabs groupId
+ * @param {boolean} newWindow
+ * @param {number} currentWindowId - explicit target window when switching groups
  * @returns {Promise}
  */
-async function selectTab(tabIndex, groupId, newWindow=false) {
+async function selectTab(
+  tabIndex,
+  groupId,
+  newWindow=false,
+  currentWindowId,
+) {
   try {
     let groupIndex = GroupManager.getGroupIndexFromGroupId(groupId);
 
@@ -59,7 +66,7 @@ async function selectTab(tabIndex, groupId, newWindow=false) {
     if (newWindow && !GroupManager.isGroupIndexInOpenWindow(groupIndex)) {
       await WindowManager.openGroupInNewWindow(groupId);
     } else {
-      await WindowManager.selectGroup(groupId);
+      await WindowManager.selectGroup(groupId, {currentWindowId});
     }
 
     return "selectTab done!";
