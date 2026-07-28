@@ -1,5 +1,16 @@
 # Chrome Web Store submission checklist
 
+## Publication record
+
+- [x] Initial version `1.0.0` is published.
+- Store page:
+  [Tab Groups Resurrection](https://chromewebstore.google.com/detail/tab-groups-resurrection/bmjkpeefoomkdgodlecgdjjgdkoldofj)
+- Extension ID: `bmjkpeefoomkdgodlecgdjjgdkoldofj`
+- Public availability confirmed: July 28, 2026
+
+The remaining unchecked items are retained as a reusable checklist for future
+updates.
+
 ## Package
 
 - [ ] Run `npm ci`.

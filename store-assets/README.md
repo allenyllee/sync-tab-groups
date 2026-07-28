@@ -3,6 +3,14 @@
 This directory contains the text and image assets for the independent
 `Tab Groups Resurrection` Chrome Web Store listing.
 
+## Published listing
+
+- Store page:
+  [Tab Groups Resurrection](https://chromewebstore.google.com/detail/tab-groups-resurrection/bmjkpeefoomkdgodlecgdjjgdkoldofj)
+- Extension ID: `bmjkpeefoomkdgodlecgdjjgdkoldofj`
+- Initial published version: `1.0.0`
+- Confirmed publicly available: July 28, 2026
+
 - `store-listing-en.md`: primary English listing copy
 - `store-listing-zh-TW.md`: Traditional Chinese localization
 - `privacy-dashboard.md`: single-purpose, permission, remote-code, and data-use

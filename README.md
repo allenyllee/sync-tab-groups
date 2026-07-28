@@ -18,6 +18,12 @@ groups, and keeping pinned tabs inside their groups. Groups can be closed and
 reopened without losing their tabs, and can be searched, moved, exported, and
 backed up.
 
+## Install
+
+[Install Tab Groups Resurrection from the Chrome Web Store](https://chromewebstore.google.com/detail/tab-groups-resurrection/bmjkpeefoomkdgodlecgdjjgdkoldofj).
+
+Chrome Web Store extension ID: `bmjkpeefoomkdgodlecgdjjgdkoldofj`.
+
 ## Screenshots
 
 ### Search and manage groups
@@ -49,9 +55,9 @@ the backup interval and maximum number of saved backups.
 - Maintenance is intentionally modest: keep the extension usable, adapt it to
   browser changes, and fix practical bugs. There is no large feature roadmap.
 - This fork does not currently provide cloud or cross-device synchronization.
-- A Chrome Web Store submission package and listing materials are maintained in
-  `store-assets`. Until the listing is approved, build and load the extension
-  locally from this repository.
+- The extension is published on the
+  [Chrome Web Store](https://chromewebstore.google.com/detail/tab-groups-resurrection/bmjkpeefoomkdgodlecgdjjgdkoldofj).
+  Reproducible listing and release materials are maintained in `store-assets`.
 
 The Manifest V3 migration was developed with assistance from OpenAI Codex and
 then validated with automated asset checks, Jasmine unit and integration tests,
