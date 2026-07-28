@@ -44,7 +44,10 @@ async function run() {
     '--no-first-run',
     '--no-default-browser-check',
     'about:blank',
-  ], {stdio: ['ignore', 'ignore', 'pipe']});
+  ], {
+    detached: process.platform !== 'win32',
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
 
   let browserErrors = '';
   browser.stderr.on('data', chunk => browserErrors += chunk.toString());
@@ -138,7 +141,9 @@ async function run() {
   }
 }
 
-run().catch(error => {
+run().then(() => {
+  process.exit(0);
+}, error => {
   console.error(error.stack || error);
-  process.exitCode = 1;
+  process.exit(1);
 });

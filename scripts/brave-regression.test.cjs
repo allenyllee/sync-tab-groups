@@ -63,25 +63,29 @@ async function waitForBrowserExit(browser, timeout) {
 }
 
 async function stopBrowser(browser) {
-  if (!browser || browserHasExited(browser)) return;
+  if (!browser) return;
 
   if (process.platform === 'win32' && browser.pid) {
     spawnSync('taskkill.exe', ['/PID', String(browser.pid), '/T', '/F'], {
       stdio: 'ignore',
     });
-  } else {
-    browser.kill('SIGTERM');
+  } else if (browser.pid) {
+    try {
+      process.kill(-browser.pid, 'SIGTERM');
+    } catch (error) {
+      if (error.code !== 'ESRCH') throw error;
+    }
   }
   await waitForBrowserExit(browser, 3000);
 
-  if (!browserHasExited(browser)) {
-    if (process.platform === 'win32' && browser.pid) {
-      spawnSync('taskkill.exe', ['/PID', String(browser.pid), '/T', '/F'], {
-        stdio: 'ignore',
-      });
-    } else {
-      browser.kill('SIGKILL');
+  if (process.platform !== 'win32' && browser.pid) {
+    try {
+      process.kill(-browser.pid, 'SIGKILL');
+    } catch (error) {
+      if (error.code !== 'ESRCH') throw error;
     }
+  }
+  if (!browserHasExited(browser)) {
     await waitForBrowserExit(browser, 5000);
   }
 }
@@ -227,11 +231,12 @@ async function run() {
 
   let browserErrors = '';
   const launchBrowser = () => {
-    const process = spawn(brave, browserArguments, {
+    const browserProcess = spawn(brave, browserArguments, {
+      detached: process.platform !== 'win32',
       stdio: ['ignore', 'ignore', 'pipe'],
     });
-    process.stderr.on('data', chunk => browserErrors += chunk.toString());
-    return process;
+    browserProcess.stderr.on('data', chunk => browserErrors += chunk.toString());
+    return browserProcess;
   };
   let browser = launchBrowser();
   let worker;
@@ -731,9 +736,11 @@ async function run() {
 }
 
 if (require.main === module) {
-  run().catch(error => {
+  run().then(() => {
+    process.exit(0);
+  }, error => {
     console.error(error.stack || error);
-    process.exitCode = 1;
+    process.exit(1);
   });
 }
 
