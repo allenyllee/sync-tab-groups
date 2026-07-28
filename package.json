@@ -1,6 +1,6 @@
 {
   "name": "tab-groups-resurrection",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An independently maintained Chromium MV3 tab-group manager.",
   "main": "index.js",
   "engines": {

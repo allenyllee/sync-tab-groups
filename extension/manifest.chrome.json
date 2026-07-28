@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Tab Groups Resurrection",
   "description": "__MSG_extension_description__",
   "homepage_url": "https://github.com/allenyllee/sync-tab-groups",
