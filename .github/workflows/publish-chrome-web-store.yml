@@ -56,10 +56,29 @@ jobs:
       - name: Verify release version
         run: npm run release:check-version -- "$GITHUB_REF_NAME"
 
-      - name: Run regression suite
+      - name: Test generated assets
         env:
           BRAVE_BINARY: /usr/bin/brave-browser
-        run: npm run test:regression
+        run: npm test
+        timeout-minutes: 5
+
+      - name: Run Jasmine unit tests
+        env:
+          BRAVE_BINARY: /usr/bin/brave-browser
+        run: npm run test:jasmine:unit
+        timeout-minutes: 5
+
+      - name: Run Jasmine integration tests
+        env:
+          BRAVE_BINARY: /usr/bin/brave-browser
+        run: npm run test:jasmine:integration
+        timeout-minutes: 6
+
+      - name: Run Brave regression tests
+        env:
+          BRAVE_BINARY: /usr/bin/brave-browser
+        run: npm run test:brave
+        timeout-minutes: 5
 
       - name: Run lint
         run: npm run lint
